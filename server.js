@@ -31,13 +31,19 @@ function defaultUsers() {
     {
       id: 'sin',
       password: bcrypt.hashSync('123123', 10),
-      name: 'sin',
-      role: 'viewer'
+      name: '신익수',
+      role: 'admin'
     },
     {
       id: 'song',
       password: bcrypt.hashSync('123123', 10),
-      name: 'song',
+      name: '송효빈',
+      role: 'admin'
+    },
+        {
+      id: 'djpshs',
+      password: bcrypt.hashSync('djpshs123', 10),
+      name: '교사',
       role: 'viewer'
     }
   ];
