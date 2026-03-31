@@ -24,14 +24,20 @@ function defaultUsers() {
   return [
     {
       id: 'admin',
-      password: bcrypt.hashSync('admin1234', 10),
+      password: bcrypt.hashSync('todrhkrh!2', 10),
       name: '관리자',
       role: 'admin'
     },
     {
       id: 'sin',
-      password: bcrypt.hashSync('1234', 10),
+      password: bcrypt.hashSync('123123', 10),
       name: 'sin',
+      role: 'viewer'
+    }
+    {
+      id: 'song',
+      password: bcrypt.hashSync('123123', 10),
+      name: 'song',
       role: 'viewer'
     }
   ];
