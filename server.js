@@ -33,7 +33,7 @@ function defaultUsers() {
       password: bcrypt.hashSync('123123', 10),
       name: 'sin',
       role: 'viewer'
-    }
+    },
     {
       id: 'song',
       password: bcrypt.hashSync('123123', 10),
