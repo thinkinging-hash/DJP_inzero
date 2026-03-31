@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대생인재로 · 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#0d1b2a;
+  --navy2:#132033;
+  --navy3:#1a2d44;
+  --panel:#162030;
+  --panel2:#1e2d40;
+  --panel3:#243851;
+  --border:rgba(255,255,255,0.08);
+  --teal:#00d4aa;
+  --teal2:#00a87e;
+  --blue:#4da6ff;
+  --blue2:#2280e8;
+  --amber:#ffb740;
+  --coral:#ff6b6b;
+  --purple:#a78bfa;
+  --green:#4ade80;
+  --pink:#f472b6;
+  --text:#e8edf2;
+  --text2:#9eb0c4;
+  --text3:#5d748d;
+  --line:rgba(255,255,255,0.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;overflow-x:hidden}
+.topbar{background:linear-gradient(90deg,#0a3d5c,#0d2340);border-bottom:1px solid rgba(0,212,170,.18);padding:0 24px;display:flex;align-items:center;gap:16px;height:56px}
+.topbar-logo{font-size:18px;font-weight:900;color:var(--teal)}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-brand-logo{width:30px;height:30px;object-fit:contain;border-radius:50%;background:rgba(255,255,255,.95);padding:2px;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.topbar-sep{width:1px;height:26px;background:var(--border)}
+.topbar-title{font-size:14px;font-weight:800;color:var(--text)}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.topbar-date{font-size:11px;color:var(--text3)}
+.file-btn{padding:7px 13px;border-radius:20px;font-size:11px;font-weight:800;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-family:'Noto Sans KR',sans-serif}
+.file-btn:hover{border-color:var(--teal);color:var(--teal)}
+.file-status{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:5px 10px;font-size:11px;color:var(--text2)}
+.file-status .mini-dot{width:6px;height:6px;border-radius:50%;background:var(--text3)}
+.file-status.ok .mini-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.file-status.warn .mini-dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.year-nav{background:var(--navy2);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;gap:8px;align-items:center}
+.tabs{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0;align-items:center}
+.yn-label{font-size:11px;color:var(--text3);margin-right:4px}
+.year-buttons{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.yr-btn{padding:5px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .2s;font-family:'Noto Sans KR',sans-serif}
+.tab-btn{border:none;border-radius:0;padding:12px 18px;background:transparent;font-size:12px;font-weight:700;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .2s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
+.yr-btn:hover,.tab-btn:hover{border-color:var(--teal);color:var(--teal)}
+.yr-btn.active{background:var(--teal);border-color:var(--teal);color:var(--navy);box-shadow:0 0 12px rgba(0,212,170,.36)}
+.tab-btn.active{color:var(--teal);border-bottom-color:var(--teal)}
+.content{padding:20px 24px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.load-banner{margin:0 24px 8px;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--text2);display:none}
+.load-banner.ok{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.18)}
+.load-banner.warn{background:rgba(255,183,64,.08);border-color:rgba(255,183,64,.18)}
+.kpi-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 14px 12px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--teal)}
+.kpi.clickable{cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.kpi.clickable:hover{transform:translateY(-2px);border-color:rgba(0,212,170,.35);box-shadow:0 8px 18px rgba(0,0,0,.18)}
+.filter-banner{margin-bottom:10px;padding:10px 12px;border:1px solid rgba(0,212,170,.18);border-radius:10px;background:rgba(0,212,170,.08);display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--text2)}
+.filter-banner strong{color:var(--teal)}
+.filter-clear-btn{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);font-size:11px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
+.filter-clear-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+.kpi-label{font-size:10px;color:var(--text3);margin-bottom:4px}
+.kpi-val{font-size:22px;font-weight:900;line-height:1;color:var(--text)}
+.kpi-sub{font-size:10px;color:var(--text2);margin-top:6px;line-height:1.45}
+.kpi-target{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;color:var(--text2)}
+.goal-pill{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800}
+.goal-good{background:rgba(74,222,128,.12);color:var(--green)}
+.goal-warn{background:rgba(255,107,107,.12);color:var(--coral)}
+.goal-flat{background:rgba(255,255,255,.08);color:var(--text2)}
+.grid-row{display:grid;gap:14px;margin-bottom:14px}
+.grid-overview-top{grid-template-columns:1.05fr 1.05fr .9fr .9fr}
+.grid-2{grid-template-columns:1fr 1fr}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;overflow:hidden}
+.card-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title .dot{width:6px;height:6px;border-radius:50%;background:var(--teal)}
+.chart-wrap{position:relative}
+.compare-note{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);margin-top:10px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.donut-wrap{position:relative;display:flex;align-items:center;justify-content:center;height:230px}
+.donut-center{position:absolute;text-align:center;pointer-events:none}
+.donut-center-val{font-size:22px;font-weight:900}
+.donut-center-lbl{font-size:10px;color:var(--text3)}
+
+/* ─────── 출신 중학교 탭 ─────── */
+.ms-layout{display:grid;grid-template-columns:260px 1fr;gap:14px}
+.ms-list-card,.student-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.ms-list-card{max-height:760px;display:flex;flex-direction:column}
+.ms-list-hdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--text2)}
+.student-hdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.student-hdr-title{font-size:15px;font-weight:900}
+.student-hdr-badge{font-size:11px;background:rgba(0,212,170,.15);color:var(--teal);padding:4px 10px;border-radius:999px;font-weight:800}
+.ms-search{width:100%;padding:11px 12px;border:none;border-bottom:1px solid var(--border);background:var(--panel2);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif}
+.ms-scroll{overflow-y:auto;flex:1}
+.ms-item{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--line);transition:all .15s}
+.ms-item:hover{background:var(--panel2)}
+.ms-item.active{background:rgba(0,212,170,.1);border-left:3px solid var(--teal)}
+.ms-item-name{font-size:12px}
+.ms-item-cnt{font-size:11px;font-weight:800;background:rgba(255,255,255,.07);padding:2px 9px;border-radius:999px;color:var(--text2)}
+.student-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2);gap:12px;flex-wrap:wrap}
+.student-tag{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.06);font-size:10px}
+table.stu-tbl{width:100%;border-collapse:collapse}
+table.stu-tbl th,table.stu-tbl td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:11px;text-align:left}
+table.stu-tbl th{font-size:10px;letter-spacing:.3px;background:var(--navy2);color:var(--text2);position:sticky;top:0;z-index:1}
+table.stu-tbl tr:hover td{background:rgba(255,255,255,.03)}
+table.stu-tbl tr.row-active td{background:rgba(0,212,170,.08)}
+table.stu-tbl tr.row-active td:first-child{box-shadow:inset 3px 0 0 var(--teal)}
+.sortable{cursor:pointer;user-select:none}
+.sortable .sort-arrow{opacity:.45;margin-left:4px}
+.sortable.active .sort-arrow{opacity:1;color:var(--teal)}
+.num{text-align:right}
+
+/* ─────── 학생 조회 탭 ─────── */
+.stu-search-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.stu-search-input{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif}
+.stu-search-input:focus{border-color:var(--teal)}
+.stu-filter-select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif}
+.stu-filter-select option{background:var(--navy2)}
+.stu-yr-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.stu-yr-tab{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .2s;font-family:'Noto Sans KR',sans-serif}
+.stu-yr-tab.active{background:var(--teal);border-color:var(--teal);color:var(--navy)}
+.stu-main-layout{display:grid;grid-template-columns:1fr 360px;gap:12px;align-items:start}
+.stu-table-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.stu-table-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--text2)}
+.stu-table-body{max-height:calc(100vh - 280px);overflow-y:auto}
+table.stu-main-tbl{width:100%;border-collapse:collapse}
+table.stu-main-tbl th{padding:9px 12px;background:var(--navy2);color:var(--text2);font-size:10px;font-weight:800;letter-spacing:.4px;text-align:left;position:sticky;top:0;z-index:2;border-bottom:1px solid var(--border)}
+table.stu-main-tbl td{padding:9px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--text);vertical-align:middle}
+table.stu-main-tbl tr{cursor:pointer;transition:background .12s}
+table.stu-main-tbl tr:hover td{background:var(--panel2)}
+table.stu-main-tbl tr.row-active td{background:rgba(0,212,170,.08);border-left:2px solid var(--teal)}
+.stu-name-cell{font-weight:700}
+.stu-id-cell{font-size:10px;color:var(--text3);font-family:monospace}
+
+/* 학생 상세 패널 - 우측 */
+.student-detail{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:sticky;top:16px;max-height:calc(100vh - 200px);overflow-y:auto}
+.detail-hdr{padding:16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--panel2),var(--panel3))}
+.detail-name{font-size:20px;font-weight:900;margin-bottom:4px}
+.detail-badges{display:flex;gap:6px;flex-wrap:wrap}
+.detail-badge{padding:3px 10px;border-radius:999px;font-size:10px;font-weight:800}
+.badge-male{background:rgba(77,166,255,.15);color:var(--blue)}
+.badge-female{background:rgba(244,114,182,.15);color:var(--pink)}
+.badge-grad{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-active{background:rgba(0,212,170,.15);color:var(--teal)}
+.badge-other{background:rgba(255,255,255,.08);color:var(--text2)}
+/* 상세 탭 */
+.detail-tab-row{display:flex;border-bottom:1px solid var(--border);background:var(--navy2)}
+.detail-tab-btn{flex:1;padding:9px 6px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--text3);border-bottom:2px solid transparent;font-family:'Noto Sans KR',sans-serif;transition:all .2s}
+.detail-tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);background:rgba(0,212,170,.04)}
+.detail-section{padding:12px 14px;border-bottom:1px solid var(--border)}
+.detail-section-title{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.detail-item{background:var(--panel2);border-radius:7px;padding:9px 11px}
+.detail-item.full{grid-column:1/-1}
+.detail-item .di-label{font-size:10px;color:var(--text3);margin-bottom:2px}
+.detail-item .di-val{font-size:12px;font-weight:700;word-break:break-all}
+.empty-detail{padding:60px 20px;text-align:center}
+.empty-detail .em{font-size:36px;opacity:.3;margin-bottom:10px}
+.empty-detail .et{font-size:14px;font-weight:700;color:var(--text2)}
+.empty-detail .es{font-size:12px;color:var(--text3);margin-top:6px}
+.no-results{padding:40px 24px;text-align:center;font-size:12px;color:var(--text3)}
+
+/* ─────── 졸업생 사후관리 탭 ─────── */
+.grad-layout{display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start}
+.grad-filter-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.grad-filter-btn{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .2s;font-family:'Noto Sans KR',sans-serif}
+.grad-filter-btn.active{background:var(--teal);border-color:var(--teal);color:var(--navy)}
+.grad-search{padding:8px 14px;border:1px solid var(--border);border-radius:20px;background:var(--panel2);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;width:180px}
+.grad-yr-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.grad-yr-tab{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .2s;font-family:'Noto Sans KR',sans-serif}
+.grad-yr-tab.active{background:var(--amber);border-color:var(--amber);color:var(--navy)}
+.grad-table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.grad-table-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:var(--text2)}
+.grad-table-scroll{max-height:560px;overflow:auto}
+.grad-detail-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:sticky;top:16px}
+.grad-stat-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.stat-box{background:var(--panel2);border-radius:8px;padding:10px 12px}
+.stat-box .sb-label{font-size:10px;color:var(--text3);margin-bottom:3px}
+.stat-box .sb-val{font-size:18px;font-weight:900}
+.status-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700}
+.chip-employ{background:rgba(0,212,170,.12);color:var(--teal)}
+.chip-college{background:rgba(167,139,250,.12);color:var(--purple)}
+.chip-undecided{background:rgba(255,107,107,.12);color:var(--coral)}
+.chip-dropout{background:rgba(255,183,64,.12);color:var(--amber)}
+/* 사후관리 편집 입력창 */
+.aftercare-section{padding:14px}
+.aftercare-title{font-size:11px;font-weight:800;color:var(--text3);letter-spacing:.6px;margin-bottom:10px}
+.aftercare-field{margin-bottom:10px}
+.aftercare-field label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px}
+.aftercare-field textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;resize:vertical;min-height:60px;transition:border-color .2s}
+.aftercare-field textarea:focus{border-color:var(--teal)}
+.aftercare-save-btn{width:100%;padding:10px;border-radius:8px;background:var(--teal);color:var(--navy);font-size:12px;font-weight:900;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:opacity .2s;margin-top:4px}
+.aftercare-save-btn:hover{opacity:.85}
+.aftercare-save-btn:disabled{opacity:.4;cursor:not-allowed}
+.save-toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#0d1b2a;padding:10px 20px;border-radius:8px;font-size:12px;font-weight:800;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.save-toast.show{opacity:1}
+
+/* ─────── 산출식 탭 ─────── */
+.metrics-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-bottom:14px}
+.metrics-table-wrap{overflow:auto}
+.metrics-table{width:100%;border-collapse:collapse}
+.metrics-table th,.metrics-table td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:11px;text-align:left;vertical-align:top}
+.metrics-table th{background:var(--navy2);color:var(--text2);font-size:10px;letter-spacing:.3px}
+.metrics-table tr:hover td{background:rgba(255,255,255,.03)}
+.metrics-chip{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800}
+.metrics-chip.req{background:rgba(77,166,255,.12);color:var(--blue)}
+.metrics-chip.opt{background:rgba(255,183,64,.12);color:var(--amber)}
+.metrics-note{font-size:11px;color:var(--text2);line-height:1.7}
+.metrics-year{background:rgba(0,212,170,.08)}
+
+.empty-card,.no-data-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:56px 24px;text-align:center}
+.empty-card .emoji,.no-data-panel .emoji{font-size:42px;opacity:.35;margin-bottom:10px}
+.empty-card .title,.no-data-panel .title{font-size:17px;font-weight:900;margin-bottom:8px}
+.empty-card .sub,.no-data-panel .sub{font-size:12px;color:var(--text3);line-height:1.6;max-width:640px;margin:0 auto 14px}
+.summary-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.summary-box{background:var(--panel2);border-radius:12px;padding:12px}
+.summary-box .label{font-size:10px;color:var(--text3);margin-bottom:4px}
+.summary-box .value{font-size:20px;font-weight:900;color:var(--text)}
+.summary-box .sub{font-size:10px;color:var(--text2);margin-top:4px}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px}
+@media(max-width:1280px){
+  .kpi-row{grid-template-columns:repeat(3,1fr)}
+  .grid-overview-top,.grid-2,.grid-3,.ms-layout,.search-layout,.grad-layout,.metrics-grid{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .content{padding:16px}
+  .topbar,.year-nav,.tabs{padding-left:16px;padding-right:16px}
+  .load-banner{margin-left:16px;margin-right:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="save-toast" id="save-toast">✅ 저장 완료 — 엑셀 다운로드 버튼을 눌러 반영하세요</div>
+
+<!-- 관리자 패널 모달 -->
+<div id="admin-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;">
+    <div style="font-size:16px;font-weight:900;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+      ⚙️ 관리자 패널
+      <button onclick="document.getElementById('admin-modal').style.display='none'" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div style="background:var(--panel2);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:10px;">📂 엑셀 파일 업로드</div>
+      <div id="excel-meta-info" style="font-size:11px;color:var(--text3);margin-bottom:10px;">불러오는 중...</div>
+      <input type="file" id="admin-excel-input" accept=".xlsx,.xls" hidden>
+      <button onclick="document.getElementById('admin-excel-input').click()" class="file-btn" style="background:rgba(0,212,170,.12);border-color:var(--teal);color:var(--teal);">📤 새 엑셀 업로드</button>
+      <div id="upload-result" style="margin-top:8px;font-size:11px;display:none;"></div>
+    </div>
+    <div style="background:var(--panel2);border-radius:12px;padding:16px;">
+      <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:10px;">👥 사용자 관리</div>
+      <div id="user-list" style="margin-bottom:12px;"></div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;">신규 계정 추가</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:end;">
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">아이디</div>
+            <input id="new-uid" placeholder="아이디" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--panel);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">이름</div>
+            <input id="new-uname" placeholder="이름" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--panel);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;">
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">비밀번호</div>
+            <input id="new-upw" type="password" placeholder="비밀번호" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--panel);font-size:12px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;">
+          </div>
+          <button onclick="addUser()" style="padding:7px 12px;border-radius:7px;border:none;background:var(--teal);color:var(--navy);font-size:11px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">추가</button>
+        </div>
+        <div id="user-add-result" style="margin-top:6px;font-size:11px;display:none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <img src="school_logo.png" alt="학교 로고" class="topbar-brand-logo" onerror="this.style.display='none'">
+    <div class="topbar-logo">대전생활과학고등학교</div>
+  </div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-title">대생인재로</div>
+  <div class="topbar-right">
+    <div id="file-status" class="file-status warn"><span class="mini-dot"></span><span>엑셀 연결 대기</span></div>
+    <button id="save-direct-btn" class="file-btn" style="display:none">💾 원본 파일에 저장</button>
+    <button id="open-rw-btn" class="file-btn" style="display:none">🔗 엑셀 직접 연결</button>
+    <button id="export-btn" class="file-btn" style="display:none">⬇ 엑셀 내보내기</button>
+    <button id="pick-file-btn" class="file-btn" style="display:none">엑셀 불러오기</button>
+    <input id="file-input" type="file" accept=".xlsx,.xls" hidden>
+    <button id="admin-panel-btn" class="file-btn" style="display:none;background:rgba(77,166,255,.12);border-color:var(--blue);color:var(--blue);" onclick="openAdminPanel()">⚙️ 관리자 패널</button>
+    <div class="live-dot"></div>
+    <span class="topbar-date" id="live-date"></span>
+    <span id="user-badge" style="font-size:11px;color:var(--text3)"></span>
+    <button onclick="doLogout()" class="file-btn" style="background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.25);color:var(--coral);">로그아웃</button>
+  </div>
+</div>
+
+<div class="year-nav">
+  <span class="yn-label">학년도</span>
+  <div id="year-buttons" class="year-buttons"></div>
+</div>
+
+<div id="load-banner" class="load-banner"></div>
+
+<div class="tabs" id="tab-bar">
+  <button class="tab-btn active" data-tab="overview">종합 현황</button>
+  <button class="tab-btn" data-tab="career">진로 · 취업 · 진학</button>
+  <button class="tab-btn" data-tab="middle">출신 중학교</button>
+  <button class="tab-btn" data-tab="student-search">학생 조회</button>
+  <button class="tab-btn" data-tab="graduates">졸업생 사후관리</button>
+  <button class="tab-btn" data-tab="metrics">산출식 · 목표치</button>
+</div>
+
+<div class="content">
+  <div id="tab-overview" class="tab-panel active"></div>
+  <div id="tab-career" class="tab-panel"></div>
+  <div id="tab-middle" class="tab-panel" style="display:none"></div>
+  <div id="tab-student-search" class="tab-panel" style="display:none"></div>
+  <div id="tab-graduates" class="tab-panel" style="display:none"></div>
+  <div id="tab-metrics" class="tab-panel"></div>
+</div>
+
+<script>
+document.getElementById('live-date').textContent = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+const DEFAULT_XLSX='학생관리_프로그램_대시보드.xlsx';
+const QUOTA=162;
+const BUTTON_YEARS=Array.from({length:9},(_,i)=>2022+i);
+const DEPT_GROUP_ORDER=['바이오','전기','건축','조리제빵','뷰티'];
+const DEPT_FIXED_ORDER=['바이오제약과','바이오의료전기과','바이오플랜트과','바이오푸드과','바이오코스메틱과','바이오뷰티테크과','바이오케미컬과','전기전자과','철도전기신호과','건축인테리어과','철도건축시설과','조리제빵과','토털뷰티과'];
+
+let DB=[], YEARS=[], CY=2022, CT='overview', charts={}, workbookName='';
+let metricsMap={}, summaryCache={};
+let originalSheetRows=[], originalHeaders=[], dbSheetName='학생통합DB';
+// Middle tab state
+let selMS=null, msQ='', middleSort={key:'중학교내신',dir:'desc'};
+// Student search state
+let searchQ={name:'', middle:'', grade:'전체', dept:'', status:''};
+let studentPresetFilter=null;
+let selStudentIdx=null;
+let stuDetailTab='basic';
+// Graduate state
+let gradFilter='전체', gradSearch='', gradYear='전체', selGradIdx=null;
+// DB dirty flag for export
+let rawWorkbook=null;
+let workbookFileHandle=null;
+let canDirectWrite=false;
+let currentUser=null;
+let currentRole='viewer';
+
+const ROLE_TAB_CONFIG={
+  admin:['overview','career','middle','student-search','graduates','metrics'],
+  viewer:['overview','career','metrics']
+};
+
+const chartTextColor='#9eb0c4';
+const chartGrid='rgba(255,255,255,.06)';
+function addAxisPadding(arr,pad=2,multi=1.18){const nums=(arr||[]).map(v=>Number(v)||0);const mx=Math.max(0,...nums);return mx>0?Math.ceil(mx*multi+pad):pad;}
+
+const valueLabelPlugin={
+  id:'valueLabelPlugin',
+  afterDatasetsDraw(chart,args,opts){
+    const type=chart.config.type;
+    if(type!=='bar') return;
+    const {ctx}=chart;
+    const indexAxis=chart.options.indexAxis||'x';
+    const suffix=opts&&opts.suffix?opts.suffix:'명';
+    const formatter=opts&&opts.formatter?opts.formatter:(v=>`${v}${suffix}`);
+    ctx.save();
+    ctx.font='700 11px "Noto Sans KR", sans-serif';
+    ctx.fillStyle=opts&&opts.color?opts.color:'#e8edf2';
+    ctx.textBaseline='middle';
+    chart.data.datasets.forEach((dataset,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      if(meta.hidden) return;
+      meta.data.forEach((bar,i)=>{
+        const raw=dataset.data[i];
+        if(raw===null||raw===undefined||raw==='') return;
+        const text=formatter(raw,i,dataset.label);
+        if(indexAxis==='y'){
+          ctx.textAlign='left';
+          const tx=Math.min(bar.x+8, chart.chartArea.right-26);
+          ctx.fillText(text, tx, bar.y);
+        }
+        else{
+          ctx.textAlign='center';
+          const ty=Math.max(bar.y-10, chart.chartArea.top+10);
+          ctx.fillText(text, bar.x, ty);
+        }
+      });
+    });
+    ctx.restore();
+  }
+};
+Chart.register(valueLabelPlugin);
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function escapeHtml(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function toNumber(v){
+  if(v===null||v===undefined||v==='') return null;
+  const s=String(v).replace(/,/g,'').replace(/%/g,'').trim();
+  if(!s) return null;
+  const n=Number(s);
+  return Number.isFinite(n)?n:null;
+}
+function toInt(v){const n=toNumber(v);return n===null?null:Math.trunc(n);}
+function pct(v,d=1){return `${Number(v||0).toFixed(d)}%`;}
+function fmtNum(v,d=0){return Number(v||0).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function setLoadBanner(message='',kind='warn',show=false){
+  const el=document.getElementById('load-banner');
+  el.className=`load-banner ${kind}`;
+  el.innerHTML=message;
+  el.style.display=show?'block':'none';
+}
+function setFileStatus(text,kind='warn'){
+  const node=document.getElementById('file-status');
+  node.className=`file-status ${kind}`;
+  node.innerHTML=`<span class="mini-dot"></span><span>${escapeHtml(text)}</span>`;
+}
+
+function bindImeSafeInput(inputEl, onCommit){
+  if(!inputEl) return;
+  let isComposing=false;
+  inputEl.addEventListener('compositionstart',()=>{isComposing=true;});
+  inputEl.addEventListener('compositionend',()=>{isComposing=false;});
+  inputEl.addEventListener('keydown',e=>{
+    if(e.key==='Enter' && !isComposing){
+      onCommit(e.target.value);
+    }
+  });
+  inputEl.addEventListener('change',e=>{
+    if(!isComposing) onCommit(e.target.value);
+  });
+  inputEl.addEventListener('blur',e=>{
+    if(!isComposing) onCommit(e.target.value);
+  });
+}
+
+async function openWorkbookWithHandle(){
+  if(!window.showOpenFilePicker){
+    setLoadBanner('현재 브라우저는 원본 파일 직접 연결 저장을 지원하지 않습니다. 크롬 또는 엣지에서 사용해주세요.','warn',true);
+    return;
+  }
+  try{
+    const [handle] = await window.showOpenFilePicker({
+      multiple:false,
+      types:[{
+        description:'Excel Workbook',
+        accept:{
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':['.xlsx'],
+          'application/vnd.ms-excel':['.xls']
+        }
+      }]
+    });
+    const file = await handle.getFile();
+    workbookFileHandle = handle;
+    canDirectWrite = true;
+    const buffer = await file.arrayBuffer();
+    await loadWorkbookFromArrayBuffer(buffer, file.name);
+    document.getElementById('save-direct-btn').style.display='';
+    setLoadBanner('<strong>직접 연결 모드</strong>로 파일을 열었습니다. 사후관리 저장 후 <strong>원본 파일에 저장</strong> 버튼으로 같은 엑셀 파일에 바로 반영할 수 있습니다.','ok',true);
+  }catch(err){
+    if(String(err).includes('AbortError')) return;
+    console.error(err);
+    setLoadBanner('엑셀 직접 연결에 실패했습니다. 권한 허용 여부와 브라우저 지원 상태를 확인해주세요.','warn',true);
+  }
+}
+
+async function saveWorkbookToOriginal(){
+  if(!rawWorkbook){
+    setLoadBanner('저장할 엑셀 데이터가 없습니다. 먼저 파일을 불러오세요.','warn',true);
+    return false;
+  }
+  if(!workbookFileHandle || !canDirectWrite){
+    setLoadBanner('원본 파일 직접 저장이 연결되지 않았습니다. 상단의 <strong>엑셀 직접 연결</strong> 버튼으로 파일을 열어주세요.','warn',true);
+    return false;
+  }
+  try{
+    DB.forEach(syncRowToOriginal);
+    const aoa=[originalHeaders, ...originalSheetRows.map(row=>originalHeaders.map(h=>row[h] ?? ''))];
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    rawWorkbook.Sheets[dbSheetName]=ws;
+    if(!rawWorkbook.SheetNames.includes(dbSheetName)){
+      rawWorkbook.SheetNames.unshift(dbSheetName);
+    }
+    const wbout = XLSX.write(rawWorkbook,{bookType:'xlsx',type:'array'});
+    const writable = await workbookFileHandle.createWritable();
+    await writable.write(wbout);
+    await writable.close();
+    setLoadBanner(`<strong>${escapeHtml(workbookName)}</strong> 원본 파일에 저장했습니다. 사후관리 수정 내용이 바로 반영되었습니다.`,'ok',true);
+    showToast('✅ 원본 엑셀 파일 저장 완료');
+    return true;
+  }catch(err){
+    console.error(err);
+    setLoadBanner('원본 파일 저장에 실패했습니다. 파일이 다른 프로그램에서 열려 있거나 권한이 부족할 수 있습니다.','warn',true);
+    return false;
+  }
+}
+
+function normalizeRow(raw, rowIndex=-1){
+  const row={};Object.keys(raw||{}).forEach(k=>row[String(k).trim()]=raw[k]);
+  return {
+    학생ID:row['학생ID']||'',
+    이름:String(row['이름']||'').trim(),
+    성별:String(row['성별']||'').trim(),
+    생년월일:String(row['생년월일']||'').trim(),
+    전화번호:String(row['전화번호']||'').trim(),
+    입학년도:toInt(row['입학년도']),
+    출신중학교:String(row['출신중학교']||'미상').trim()||'미상',
+    중학교내신:toNumber(row['중학교내신']),
+    입학학과:String(row['입학학과']||'미지정').trim()||'미지정',
+    상태:String(row['상태']||'').trim(),
+    졸업여부:String(row['졸업여부']||'').trim(),
+    졸업년도:toInt(row['졸업년도']),
+    진로유형:String(row['진로유형']||'').trim(),
+    지역:String(row['지역']||'').trim(),
+    대학회사명:String(row['대학/회사명']||'').trim(),
+    학과직무:String(row['학과/직무']||'').trim(),
+    졸업1년사후관리:String(row['졸업1년사후관리']||'').trim(),
+    졸업2년사후관리:String(row['졸업2년사후관리']||'').trim(),
+    학생구분:String(row['학생구분']||'').trim(),
+    사후관리대상:String(row['사후관리대상']||'').trim(),
+    비고:String(row['비고']||'').trim(),
+    __rowIndex: rowIndex
+  };
+}
+function deptGroup(name){
+  const n=String(name||'');
+  if(n.includes('바이오')) return '바이오';
+  if(n.includes('전기')) return '전기';
+  if(n.includes('건축')) return '건축';
+  if(n.includes('조리')) return '조리제빵';
+  if(n.includes('뷰티')) return '뷰티';
+  return '기타';
+}
+function deptSort(a,b){
+  const ai=DEPT_FIXED_ORDER.indexOf(a),bi=DEPT_FIXED_ORDER.indexOf(b);
+  if(ai!==-1||bi!==-1){
+    if(ai===-1) return 1;
+    if(bi===-1) return -1;
+    if(ai!==bi) return ai-bi;
+  }
+  const ga=DEPT_GROUP_ORDER.indexOf(deptGroup(a));
+  const gb=DEPT_GROUP_ORDER.indexOf(deptGroup(b));
+  if(ga!==gb) return (ga===-1?99:ga)-(gb===-1?99:gb);
+  return String(a).localeCompare(String(b),'ko');
+}
+function targetCompare(actual,target,higherIsBetter=true){
+  if(target===null||target===undefined||actual===null||actual===undefined) return {label:'목표 없음',cls:'goal-flat'};
+  const diff=actual-target;
+  if(Math.abs(diff)<0.05) return {label:'목표와 동일',cls:'goal-flat'};
+  const ok=higherIsBetter?diff>=0:diff<=0;
+  return {label:`${ok?'목표 달성':'목표 미달'} ${Math.abs(diff).toFixed(1)}%`,cls:ok?'goal-good':'goal-warn'};
+}
+function normalizeMetricName(name){return String(name||'').replace(/\s+/g,'').trim();}
+function metricAliases(metric){
+  const key=normalizeMetricName(metric);
+  const aliases={
+    '미결정률':['진로미결정률'],'진로미결정률':['미결정률'],
+    '거버넌스참여자및핵심관계자수치':['지역거버넌스참여자및핵심관계자만족도'],
+    '지역거버넌스참여자및핵심관계자만족도':['거버넌스참여자및핵심관계자만족도','거버넌스참여자및핵심관계자수치'],
+    '지역정주율':['지역내정주율'],'지역내정주율':['지역정주율'],
+    '지역내취업률':['대전내취업률'],'대전내취업률':['지역내취업률'],
+    '중도탈락자':['중도탈락률'],'신입생충원율':['충원율']
+  };
+  return [key,...(aliases[key]||[])];
+}
+function computedMetricActual(metric,year){
+  const s=getSummary(year);
+  const key=normalizeMetricName(metric);
+  if(!s||!s.total) return null;
+  if(['중도탈락률','중도탈락자'].includes(key)) return s.dropoutRate;
+  if(['지역정주율','지역내정주율'].includes(key)) return s.localStayRate;
+  if(['진로미결정률','미결정률'].includes(key)) return s.undecidedRate;
+  if(['순취업률'].includes(key)) return s.employRate;
+  if(['지역내취업률','대전내취업률'].includes(key)) return s.localEmployRate;
+  if(['충원율','신입생충원율'].includes(key)) return s.recruitRate;
+  return null;
+}
+function metricValue(metric,year,mode='actual'){
+  const candidates=metricAliases(metric);
+  for(const key of candidates){
+    if(metricsMap[key]?.[year]?.[mode]!==undefined&&metricsMap[key]?.[year]?.[mode]!==null) return metricsMap[key][year][mode];
+  }
+  if(mode==='actual'){
+    for(const key of candidates){
+      const calc=computedMetricActual(key,year);
+      if(calc!==null&&calc!==undefined) return calc;
+    }
+  }
+  return null;
+}
+
+function syncRowToOriginal(r){
+  if(!r || r.__rowIndex===null || r.__rowIndex===undefined || r.__rowIndex<0) return;
+  const o=originalSheetRows[r.__rowIndex];
+  if(!o) return;
+  o['학생ID']=r.학생ID||'';
+  o['이름']=r.이름||'';
+  o['성별']=r.성별||'';
+  o['생년월일']=r.생년월일||'';
+  o['전화번호']=r.전화번호||'';
+  o['입학년도']=r.입학년도??'';
+  o['출신중학교']=r.출신중학교||'';
+  o['중학교내신']=r.중학교내신??'';
+  o['입학학과']=r.입학학과||'';
+  o['상태']=r.상태||'';
+  o['졸업여부']=r.졸업여부||'';
+  o['졸업년도']=r.졸업년도??'';
+  o['진로유형']=r.진로유형||'';
+  o['지역']=r.지역||'';
+  o['대학/회사명']=r.대학회사명||'';
+  o['학과/직무']=r.학과직무||'';
+  o['졸업1년사후관리']=r.졸업1년사후관리||'';
+  o['졸업2년사후관리']=r.졸업2년사후관리||'';
+  o['학생구분']=r.학생구분||'';
+  o['사후관리대상']=r.사후관리대상||'';
+  o['비고']=r.비고||'';
+}
+function exportWorkbook(){
+  if(!rawWorkbook || !originalHeaders.length || !originalSheetRows.length){
+    setLoadBanner('내보낼 엑셀 데이터가 없습니다. 먼저 파일을 불러오세요.','warn',true);
+    return;
+  }
+  DB.forEach(syncRowToOriginal);
+  const aoa=[originalHeaders, ...originalSheetRows.map(row=>originalHeaders.map(h=>row[h] ?? ''))];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  rawWorkbook.Sheets[dbSheetName]=ws;
+  if(!rawWorkbook.SheetNames.includes(dbSheetName)){
+    rawWorkbook.SheetNames.unshift(dbSheetName);
+  }
+  const safeBase=(workbookName||'학생관리_프로그램_대시보드.xlsx').replace(/\.xlsx?$/i,'');
+  XLSX.writeFile(rawWorkbook, `${safeBase}_수정본.xlsx`);
+  setLoadBanner(`<strong>${escapeHtml(safeBase + '_수정본.xlsx')}</strong> 파일로 저장했습니다. 수정한 학생통합DB 내용이 반영되었습니다.`,'ok',true);
+  showToast('✅ 엑셀 내보내기 완료');
+}
+
+function parseMetrics(sheet){
+  const result={};
+  function readCell(addr){const cell=sheet[addr];return cell?cell.v:null;}
+  function addMetric(metric,year,actual,target){
+    if(!metric||!year) return;
+    const key=normalizeMetricName(metric);
+    if(!result[key]) result[key]={};
+    result[key][year]={actual:(actual===null||actual===undefined||actual==='')?null:toNumber(actual),target:(target===null||target===undefined||target==='')?null:toNumber(target)};
+  }
+  function readBlock(headerMetricCell,startRow,endRow,yearCol,actualCol,targetCol){
+    const metric=String(readCell(headerMetricCell)||'').trim();
+    if(!metric) return;
+    for(let r=startRow;r<=endRow;r++){
+      const y=toInt(readCell(yearCol+r));
+      if(!y) continue;
+      addMetric(metric,y,readCell(actualCol+r),readCell(targetCol+r));
+    }
+  }
+  readBlock('C2',3,11,'B','C','D');
+  readBlock('G2',3,11,'F','G','H');
+  readBlock('C13',14,22,'B','C','D');
+  readBlock('G13',14,22,'F','G','H');
+  readBlock('C24',25,33,'B','C','D');
+  readBlock('G24',25,33,'F','G','H');
+  readBlock('C35',36,44,'B','C','D');
+  readBlock('G35',36,44,'F','G','H');
+  return result;
+}
+function getRowsByYear(year){return DB.filter(r=>r.입학년도===year);}
+function getSummary(year){
+  if(summaryCache[year]) return summaryCache[year];
+  const rows=getRowsByYear(year);
+  const grads=rows.filter(r=>r.상태==='졸업');
+  const total=rows.length;
+  const m=rows.filter(r=>r.성별==='남').length;
+  const f=rows.filter(r=>r.성별==='여').length;
+  const dropout=rows.filter(r=>r.상태==='중도탈락').length;
+  const graduated=grads.length;
+  const employed=grads.filter(r=>r.진로유형==='취업').length;
+  const localEmploy=grads.filter(r=>r.진로유형==='취업'&&r.지역==='대전').length;
+  const outerEmploy=employed-localEmploy;
+  const college4=grads.filter(r=>r.진로유형==='4년제').length;
+  const college2=grads.filter(r=>r.진로유형==='전문대').length;
+  const college=college4+college2;
+  const localCollege=grads.filter(r=>['4년제','전문대'].includes(r.진로유형)&&r.지역==='대전').length;
+  const outerCollege=college-localCollege;
+  const undecided=grads.filter(r=>r.진로유형==='미결정').length;
+  const localStay=localEmploy+localCollege;
+  const recruitRate=total?total/QUOTA*100:0;
+  const dropoutRate=total?dropout/total*100:0;
+  const undecidedRate=graduated?undecided/graduated*100:0;
+  const localStayRate=graduated?localStay/graduated*100:0;
+  const ms={};
+  rows.forEach(r=>{ms[r.출신중학교]=(ms[r.출신중학교]||0)+1;});
+  const deptMap={};
+  rows.forEach(r=>{
+    const key=r.입학학과||'미지정';
+    if(!deptMap[key]) deptMap[key]={male:0,female:0,total:0,employed:0,college:0,undecided:0,graduated:0};
+    deptMap[key].total++;
+    if(r.성별==='남') deptMap[key].male++;
+    if(r.성별==='여') deptMap[key].female++;
+    if(r.상태==='졸업'){
+      deptMap[key].graduated++;
+      if(r.진로유형==='취업') deptMap[key].employed++;
+      else if(['4년제','전문대'].includes(r.진로유형)) deptMap[key].college++;
+      else if(r.진로유형==='미결정') deptMap[key].undecided++;
+    }
+  });
+  const deptLabels=Object.keys(deptMap).sort(deptSort);
+  const deptMale=deptLabels.map(k=>deptMap[k].male);
+  const deptFemale=deptLabels.map(k=>deptMap[k].female);
+  const deptEmployRate=deptLabels.map(k=>deptMap[k].graduated?+(deptMap[k].employed/deptMap[k].graduated*100).toFixed(1):null);
+  const deptCollegeRate=deptLabels.map(k=>deptMap[k].graduated?+(deptMap[k].college/deptMap[k].graduated*100).toFixed(1):null);
+  const deptUndecidedRate=deptLabels.map(k=>deptMap[k].graduated?+(deptMap[k].undecided/deptMap[k].graduated*100).toFixed(1):null);
+  const summary={year,rows,total,m,f,dropout,graduated,employed,localEmploy,outerEmploy,college,college4,college2,localCollege,outerCollege,undecided,localStay,recruitRate,dropoutRate,undecidedRate,localStayRate,employRate:graduated?employed/graduated*100:0,localEmployRate:employed?localEmploy/employed*100:0,collegeRate:graduated?college/graduated*100:0,localCollegeRate:college?localCollege/college*100:0,ms,deptLabels,deptMale,deptFemale,deptEmployRate,deptCollegeRate,deptUndecidedRate,deptMap};
+  summaryCache[year]=summary;
+  return summary;
+}
+
+function applyRoleUi(){
+  const tabs = ROLE_TAB_CONFIG[currentRole] || ROLE_TAB_CONFIG.viewer;
+  document.querySelectorAll('#tab-bar .tab-btn').forEach(btn=>{
+    const show = tabs.includes(btn.dataset.tab);
+    btn.style.display = show ? '' : 'none';
+  });
+
+  const adminBtn=document.getElementById('admin-panel-btn');
+  if(adminBtn) adminBtn.style.display = currentRole==='admin' ? '' : 'none';
+
+  const adminOnlyPanels=['tab-middle','tab-student-search','tab-graduates'];
+  adminOnlyPanels.forEach(id=>{
+    const panel=document.getElementById(id);
+    if(panel) panel.style.display = currentRole==='admin' ? '' : 'none';
+  });
+
+  if (!tabs.includes(CT)) {
+    CT = tabs[0] || 'overview';
+  }
+}
+
+function renderYearButtons(){
+  const box=document.getElementById('year-buttons');
+  box.innerHTML=BUTTON_YEARS.map(y=>`<button class="yr-btn ${CY===y?'active':''}" data-yr="${y}">${y}</button>`).join('');
+  box.querySelectorAll('.yr-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{CY=Number(btn.dataset.yr);selMS=null;msQ='';renderAll();});
+  });
+}
+function renderTabs(){
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.tab===CT));
+  document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.toggle('active',panel.id===`tab-${CT}`));
+}
+function setTab(tab){CT=tab;renderTabs();renderCurrentTab();}
+function renderEmptyState(){
+  ['tab-overview','tab-career','tab-middle','tab-student-search','tab-graduates','tab-metrics'].forEach(id=>{
+    document.getElementById(id).innerHTML=`
+      <div class="empty-card">
+        <div class="emoji">📂</div>
+        <div class="title">엑셀 파일을 불러오면 대시보드가 생성됩니다</div>
+        <div class="sub">학생통합DB와 목표치가 들어 있는 엑셀 파일을 불러오세요.</div>
+        <button class="file-btn" onclick="document.getElementById('file-input').click()">엑셀 파일 선택</button>
+      </div>`;
+  });
+}
+function renderBeforeAdmission(){
+  ['tab-overview','tab-career','tab-middle','tab-student-search','tab-graduates','tab-metrics'].forEach(id=>{
+    document.getElementById(id).innerHTML=`
+      <div class="no-data-panel">
+        <div class="emoji">🕒</div>
+        <div class="title">${CY}학년도는 입학전입니다.</div>
+        <div class="sub">해당 학년도 데이터가 아직 없습니다. 다른 학년도를 선택해주세요.</div>
+      </div>`;
+  });
+}
+function renderAll(){
+  renderYearButtons();
+  renderTabs();
+  if(!DB.length){renderEmptyState();return;}
+  if(!BUTTON_YEARS.includes(CY)) CY=BUTTON_YEARS[0];
+  if(!YEARS.includes(CY)){renderBeforeAdmission();return;}
+  renderCurrentTab();
+}
+function renderCurrentTab(){
+  if(CT==='student-search'){renderStudentSearch();return;}
+  if(CT==='graduates'){renderGraduates();return;}
+  if(CT==='metrics'){renderMetrics();return;}
+  if(!YEARS.includes(CY)){renderBeforeAdmission();return;}
+  if(CT==='overview') renderOverview();
+  else if(CT==='career') renderCareer();
+  else if(CT==='middle') renderMiddle();
+}
+function kpiTargetHtml(actual,target,higherIsBetter){
+  if(target===null||target===undefined) return `<div class="kpi-target"><span>목표치</span><span class="goal-pill goal-flat">없음</span></div>`;
+  const cmp=targetCompare(actual,target,higherIsBetter);
+  return `<div class="kpi-target"><span>목표 ${target.toFixed(1)}%</span><span class="goal-pill ${cmp.cls}">${cmp.label}</span></div>`;
+}
+function semiGaugeConfig(actual,target,color){
+  const val=Math.max(0,Math.min(100,Number(actual||0)));
+  const needleVal=target===null||target===undefined?null:Math.max(0,Math.min(100,Number(target||0)));
+  return {
+    type:'doughnut',
+    data:{datasets:[{data:[val,100-val],backgroundColor:[color,'rgba(255,255,255,.08)'],borderWidth:0,circumference:180,rotation:270,cutout:'72%'}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:8,bottom:26,left:8,right:8}},plugins:{legend:{display:false},tooltip:{enabled:false}}},
+    plugins:[{
+      id:'centerText',
+      afterDraw(chart){
+        const {ctx,chartArea:{left,right,bottom}}=chart;
+        const meta=chart.getDatasetMeta(0);
+        const arc=meta&&meta.data&&meta.data[0];
+        const x=(left+right)/2;
+        const y=bottom-28;
+        ctx.save();
+        if(arc&&needleVal!==null){
+          const cx=arc.x,cy=arc.y;
+          const outer=arc.outerRadius;
+          const inner=arc.innerRadius;
+          const angle=(-Math.PI)+(needleVal/100)*Math.PI;
+          const startR=inner-2,endR=outer+8;
+          const sx=cx+Math.cos(angle)*startR,sy=cy+Math.sin(angle)*startR;
+          const ex=cx+Math.cos(angle)*endR,ey=cy+Math.sin(angle)*endR;
+          // 목표치 침 — 빨간색 + 글로우로 가시성 강화
+          ctx.shadowColor='#ff4444';ctx.shadowBlur=8;
+          ctx.strokeStyle='#ff3333';ctx.lineWidth=4;ctx.lineCap='round';
+          ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+          // 침 끝 원형 마커
+          ctx.shadowBlur=0;ctx.fillStyle='#ff3333';
+          ctx.beginPath();ctx.arc(ex,ey,4,0,Math.PI*2);ctx.fill();
+          ctx.shadowBlur=0;
+        }
+        ctx.shadowColor='transparent';ctx.shadowBlur=0;
+        ctx.textAlign='center';
+        ctx.fillStyle='#e8edf2';ctx.font='900 22px "Noto Sans KR", sans-serif';
+        ctx.fillText(pct(actual||0),x,y-4);
+        ctx.fillStyle='#9eb0c4';ctx.font='700 11px "Noto Sans KR", sans-serif';
+        ctx.fillText(target!==null&&target!==undefined?`목표 ${pct(target)}`:'목표 없음',x,y+18);
+        ctx.restore();
+      }
+    }]
+  };
+}
+function overviewMetricCard(title,canvasId,actual,target,note,color){
+  return `<div class="card">
+    <div class="card-title"><span class="dot" style="background:${color}"></span>${title}</div>
+    <div class="chart-wrap" style="height:250px"><canvas id="${canvasId}"></canvas></div>
+    <div class="compare-note">${note}</div>
+  </div>`;
+}
+function renderOverview(){
+  const d=getSummary(CY);
+  const dropoutTarget=metricValue('중도탈락률',CY,'target');
+  const localStayTarget=metricValue('지역 정주율',CY,'target');
+  const undecidedTarget=metricValue('진로 미결정률',CY,'target');
+  const vocationalActual=metricValue('직업기초능력평가 비율',CY,'actual');
+  const vocationalTarget=metricValue('직업기초능력평가 비율',CY,'target');
+  const governanceActual=metricValue('지역 거버넌스 참여자 및 핵심관계자 만족도',CY,'actual');
+  const governanceTarget=metricValue('지역 거버넌스 참여자 및 핵심관계자 만족도',CY,'target');
+  const el=document.getElementById('tab-overview');
+  el.innerHTML=`
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">신입생 충원율</div>
+        <div class="kpi-val">${pct(d.recruitRate)}</div>
+        <div class="kpi-sub">${fmtNum(d.total)} / ${QUOTA}명</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">졸업자</div>
+        <div class="kpi-val">${d.graduated?fmtNum(d.graduated)+'명':'-'}</div>
+        <div class="kpi-sub">${d.graduated?'졸업 완료':'재학 중'}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">중도탈락</div>
+        <div class="kpi-val">${fmtNum(d.dropout)}명</div>
+        <div class="kpi-sub">중도탈락률 ${pct(d.dropoutRate)}</div>
+        ${kpiTargetHtml(d.dropoutRate,dropoutTarget,false)}
+      </div>
+      <div class="kpi clickable" data-preset="local-stay">
+        <div class="kpi-label">지역 정주율</div>
+        <div class="kpi-val">${d.graduated?pct(d.localStayRate):'-'}</div>
+        <div class="kpi-sub">${d.graduated?`대전 정주 ${fmtNum(d.localStay)}명`:'졸업 후 집계'}</div>
+        ${kpiTargetHtml(d.localStayRate,localStayTarget,true)}
+      </div>
+      <div class="kpi clickable" data-preset="undecided">
+        <div class="kpi-label">미결정률</div>
+        <div class="kpi-val">${d.graduated?pct(d.undecidedRate):'-'}</div>
+        <div class="kpi-sub">${d.graduated?`미결정 ${fmtNum(d.undecided)}명`:'졸업 후 집계'}</div>
+        ${kpiTargetHtml(d.undecidedRate,undecidedTarget,false)}
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">직업기초능력평가 비율</div>
+        <div class="kpi-val">${vocationalActual!==null?pct(vocationalActual):'-'}</div>
+        <div class="kpi-sub">두번째 시트 기준 입력값 반영</div>
+        ${kpiTargetHtml(vocationalActual,vocationalTarget,true)}
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">순 취업률</div>
+        <div class="kpi-val">${d.graduated?pct(d.employRate):'-'}</div>
+        <div class="kpi-sub">취업 ${fmtNum(d.employed)}명</div>
+        ${kpiTargetHtml(d.employRate,metricValue('순 취업률',CY,'target'),true)}
+      </div>
+    </div>
+    <div class="grid-row grid-overview-top">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>취업자 현황</div>
+        <div class="chart-wrap" style="height:230px"><canvas id="c-job"></canvas></div>
+        <div class="compare-note">대전 내 취업자와 대전 외 취업자를 구분해 표시합니다.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>진학자 현황</div>
+        <div class="chart-wrap" style="height:230px"><canvas id="c-college"></canvas></div>
+        <div class="compare-note">대전 내 진학자와 대전 외 진학자를 구분해 표시합니다.</div>
+      </div>
+      ${overviewMetricCard('거버넌스 참여자 및 핵심관계자 만족도','c-governance',governanceActual,governanceTarget,'두번째 시트에 입력한 실제값과 목표치를 반원형으로 비교합니다.','#ffb740')}
+      ${overviewMetricCard('직업기초능력평가 비율','c-vocational',vocationalActual,vocationalTarget,'실제값과 목표치를 반원형으로 비교합니다.','#4da6ff')}
+    </div>
+    <div class="grid-row grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>${CY}학년도 학과별 남녀 비율</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="c-gender-dept"></canvas></div>
+        <div class="compare-note">학과 순서는 바이오 → 전기 → 건축 → 조리제빵 → 뷰티 계열 기준으로 정렬합니다.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>남녀 비율</div>
+        <div class="donut-wrap" style="height:220px">
+          <canvas id="c-gender-donut"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-val">${fmtNum(d.total)}</div>
+            <div class="donut-center-lbl">전체 학생</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="leg-item"><span class="leg-dot" style="background:#4da6ff"></span>남 ${fmtNum(d.m)}명</div>
+          <div class="leg-item"><span class="leg-dot" style="background:#f472b6"></span>여 ${fmtNum(d.f)}명</div>
+        </div>
+      </div>
+    </div>
+  `;
+  destroyChart('c-job');
+  charts['c-job']=new Chart(document.getElementById('c-job'),{
+    type:'bar',
+    data:{labels:['대전 내 취업자','대전 외 취업자'],datasets:[{data:[d.localEmploy,d.outerEmploy],backgroundColor:['rgba(0,212,170,.8)','rgba(77,166,255,.82)'],borderRadius:8,maxBarThickness:56}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}명`}},valueLabelPlugin:{suffix:'명',color:'#e8edf2'}},scales:{x:{grid:{display:false},ticks:{color:chartTextColor,font:{weight:'700'}}},y:{beginAtZero:true,grid:{color:chartGrid},ticks:{color:chartTextColor,precision:0}}}}
+  });
+  destroyChart('c-college');
+  charts['c-college']=new Chart(document.getElementById('c-college'),{
+    type:'bar',
+    data:{labels:['대전 내 진학자','대전 외 진학자'],datasets:[{data:[d.localCollege,d.outerCollege],backgroundColor:['rgba(167,139,250,.82)','rgba(255,183,64,.82)'],borderRadius:8,maxBarThickness:56}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}명`}},valueLabelPlugin:{suffix:'명',color:'#e8edf2'}},scales:{x:{grid:{display:false},ticks:{color:chartTextColor,font:{weight:'700'}}},y:{beginAtZero:true,grid:{color:chartGrid},ticks:{color:chartTextColor,precision:0}}}}
+  });
+  destroyChart('c-governance');
+  charts['c-governance']=new Chart(document.getElementById('c-governance'),semiGaugeConfig(governanceActual,governanceTarget,'#ffb740'));
+  destroyChart('c-vocational');
+  charts['c-vocational']=new Chart(document.getElementById('c-vocational'),semiGaugeConfig(vocationalActual,vocationalTarget,'#4da6ff'));
+  destroyChart('c-gender-donut');
+  charts['c-gender-donut']=new Chart(document.getElementById('c-gender-donut'),{
+    type:'doughnut',
+    data:{labels:['남','여'],datasets:[{data:[d.m,d.f],backgroundColor:['#4da6ff','#f472b6'],borderWidth:0,hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false}}}
+  });
+  destroyChart('c-gender-dept');
+  charts['c-gender-dept']=new Chart(document.getElementById('c-gender-dept'),{
+    type:'bar',
+    data:{labels:d.deptLabels,datasets:[
+      {label:'남',data:d.deptMale,backgroundColor:'rgba(77,166,255,.82)',borderRadius:7,maxBarThickness:28},
+      {label:'여',data:d.deptFemale,backgroundColor:'rgba(244,114,182,.82)',borderRadius:7,maxBarThickness:28}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{labels:{color:chartTextColor}},tooltip:{callbacks:{label:c=>` ${c.dataset.label} ${c.raw}명`}},valueLabelPlugin:{suffix:'명',color:'#e8edf2'}},scales:{x:{beginAtZero:true,grid:{color:chartGrid},ticks:{color:chartTextColor,precision:0}},y:{grid:{display:false},ticks:{color:'#e8edf2'}}}}
+  });
+}
+
+/* ────────────────────────────────────────────
+   진로 · 취업 · 진학 탭 (학과별 취업/진학/미결정률 포함)
+──────────────────────────────────────────── */
+function renderCareer(){
+  const d=getSummary(CY);
+  const el=document.getElementById('tab-career');
+  if(!d.graduated){
+    el.innerHTML=`<div class="no-data-panel"><div class="emoji">📊</div><div class="title">${CY}학년도는 현재 재학 중입니다</div><div class="sub">졸업생 진로 데이터가 입력되면 취업률, 진학률, 지역 정주율 상세 현황을 표시합니다.</div></div>`;
+    return;
+  }
+
+  const deptLabels=d.deptLabels.filter(k=>d.deptMap[k].graduated>0);
+  const deptDisplayLabels=deptLabels.map(k=>`${k}
+${d.deptMap[k].graduated}명`);
+
+  const localEmp=deptLabels.map(k=>{
+    const rows=d.rows.filter(r=>r.입학학과===k && r.상태==='졸업');
+    return rows.filter(r=>r.진로유형==='취업' && r.지역==='대전').length;
+  });
+  const outerEmp=deptLabels.map(k=>{
+    const rows=d.rows.filter(r=>r.입학학과===k && r.상태==='졸업');
+    return rows.filter(r=>r.진로유형==='취업' && r.지역!=='대전').length;
+  });
+  const college2=deptLabels.map(k=>{
+    const rows=d.rows.filter(r=>r.입학학과===k && r.상태==='졸업');
+    return rows.filter(r=>r.진로유형==='전문대').length;
+  });
+  const college4=deptLabels.map(k=>{
+    const rows=d.rows.filter(r=>r.입학학과===k && r.상태==='졸업');
+    return rows.filter(r=>r.진로유형==='4년제').length;
+  });
+  const undecided=deptLabels.map(k=>{
+    const rows=d.rows.filter(r=>r.입학학과===k && r.상태==='졸업');
+    return rows.filter(r=>r.진로유형==='미결정').length;
+  });
+  const employed=deptLabels.map((k,i)=>(localEmp[i]||0)+(outerEmp[i]||0));
+  const college=deptLabels.map((k,i)=>(college2[i]||0)+(college4[i]||0));
+  const graduated=deptLabels.map(k=>d.deptMap[k].graduated||0);
+
+  const employRateByDept=deptLabels.map((k,i)=>graduated[i]?+((employed[i]/graduated[i])*100).toFixed(1):0);
+  const collegeRateByDept=deptLabels.map((k,i)=>graduated[i]?+((college[i]/graduated[i])*100).toFixed(1):0);
+  const undecidedRateByDept=deptLabels.map((k,i)=>graduated[i]?+((undecided[i]/graduated[i])*100).toFixed(1):0);
+  const localStayByDept=deptLabels.map((k,i)=>graduated[i]?+((((localEmp[i]||0)+(college2[i]||0)+(college4[i]||0))/graduated[i])*100).toFixed(1):0);
+
+  const maxEmpIdx=employRateByDept.reduce((m,v,i,a)=>v>a[m]?i:m,0);
+  const maxUndIdx=undecided.reduce((m,v,i,a)=>v>a[m]?i:m,0);
+
+  el.innerHTML=`
+    <div class="grid-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:14px">
+      <div class="kpi clickable" data-preset="employed">
+        <div class="kpi-label">취업률</div>
+        <div class="kpi-val">${pct(d.employRate)}</div>
+        <div class="kpi-sub">전체 취업 ${fmtNum(d.employed)}명 · 대전 ${fmtNum(d.localEmploy)}명</div>
+      </div>
+      <div class="kpi clickable" data-preset="college">
+        <div class="kpi-label">진학률</div>
+        <div class="kpi-val">${pct(d.collegeRate)}</div>
+        <div class="kpi-sub">전체 진학 ${fmtNum(d.college)}명 · 전문대 ${fmtNum(d.college2)}명</div>
+      </div>
+      <div class="kpi clickable" data-preset="undecided">
+        <div class="kpi-label">미결정률</div>
+        <div class="kpi-val">${pct(d.undecidedRate)}</div>
+        <div class="kpi-sub">미결정 ${fmtNum(d.undecided)}명</div>
+      </div>
+      <div class="kpi clickable" data-preset="local-stay">
+        <div class="kpi-label">지역 정주율</div>
+        <div class="kpi-val">${pct(d.localStayRate)}</div>
+        <div class="kpi-sub">대전 취업 + 지역 진학 기준</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">집중 관리 포인트</div>
+        <div class="kpi-val" style="font-size:16px;line-height:1.3">${escapeHtml(deptLabels[maxUndIdx]||'-')}</div>
+        <div class="kpi-sub">미결정 ${fmtNum(undecided[maxUndIdx]||0)}명 · 최고 취업 ${escapeHtml(deptLabels[maxEmpIdx]||'-')}</div>
+      </div>
+    </div>
+
+    <div class="grid-row grid-3">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>학과별 진로 구성비</div>
+        <div class="chart-wrap" style="height:360px"><canvas id="c-career-mix"></canvas></div>
+        <div class="compare-note">학과별 졸업생을 100% 기준으로 취업 · 진학 · 미결정 비율로 비교합니다.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>학과별 취업 상세</div>
+        <div class="chart-wrap" style="height:360px"><canvas id="c-career-employ-dept"></canvas></div>
+        <div class="compare-note">대전 취업과 대전 외 취업을 학과별로 구분합니다.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>학과별 진학 상세</div>
+        <div class="chart-wrap" style="height:360px"><canvas id="c-career-college-dept"></canvas></div>
+        <div class="compare-note">전문대와 4년제 진학을 학과별로 구분합니다.</div>
+      </div>
+    </div>
+
+    <div class="grid-row grid-2">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>미결정 관리 현황</div>
+        <div class="chart-wrap" style="height:300px"><canvas id="c-career-undecided-dept"></canvas></div>
+        <div class="compare-note">졸업생 중 진로 미결정 학생 수를 학과별로 표시합니다.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>학과별 핵심 판단 요약</div>
+        <div class="metrics-table-wrap">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>학과</th>
+                <th>졸업생</th>
+                <th>취업률</th>
+                <th>진학률</th>
+                <th>미결정률</th>
+                <th>지역정주율</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${deptLabels.map((k,i)=>`
+                <tr>
+                  <td>${escapeHtml(k)} <span style="color:var(--text3);font-size:10px">(${graduated[i]}명)</span></td>
+                  <td>${fmtNum(graduated[i])}명</td>
+                  <td>${employRateByDept[i]}%</td>
+                  <td>${collegeRateByDept[i]}%</td>
+                  <td>${undecidedRateByDept[i]}%</td>
+                  <td>${localStayByDept[i]}%</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>${CY}학년도 학과별 취업 · 진학 · 미결정 종합표</div>
+      <div class="metrics-note" style="margin-bottom:10px">성과지표 계산은 유지하고, 학과별 세부 현황과 결과를 한 화면에서 바로 비교할 수 있도록 정리했습니다.</div>
+      <div class="metrics-table-wrap">
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>학과</th>
+              <th>졸업생</th>
+              <th>대전 취업</th>
+              <th>대전 외 취업</th>
+              <th>전문대</th>
+              <th>4년제</th>
+              <th>미결정</th>
+              <th>취업률</th>
+              <th>진학률</th>
+              <th>미결정률</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${deptLabels.map((k, i)=>{
+              const empRate=graduated[i]?((employed[i]/graduated[i])*100).toFixed(1):'0.0';
+              const colRate=graduated[i]?((college[i]/graduated[i])*100).toFixed(1):'0.0';
+              const undRate=graduated[i]?((undecided[i]/graduated[i])*100).toFixed(1):'0.0';
+              return `<tr>
+                <td>${escapeHtml(k)} <span style="color:var(--text3);font-size:10px">(${graduated[i]}명)</span></td>
+                <td>${fmtNum(graduated[i])}명</td>
+                <td>${fmtNum(localEmp[i])}명</td>
+                <td>${fmtNum(outerEmp[i])}명</td>
+                <td>${fmtNum(college2[i])}명</td>
+                <td>${fmtNum(college4[i])}명</td>
+                <td>${fmtNum(undecided[i])}명</td>
+                <td>${empRate}%</td>
+                <td>${colRate}%</td>
+                <td>${undRate}%</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  destroyChart('c-career-mix');
+  charts['c-career-mix']=new Chart(document.getElementById('c-career-mix'),{
+    type:'bar',
+    data:{
+      labels:deptDisplayLabels,
+      datasets:[
+        {label:'취업',data:employRateByDept,backgroundColor:'rgba(0,212,170,.82)',borderRadius:5,maxBarThickness:28},
+        {label:'진학',data:collegeRateByDept,backgroundColor:'rgba(167,139,250,.82)',borderRadius:5,maxBarThickness:28},
+        {label:'미결정',data:undecidedRateByDept,backgroundColor:'rgba(255,107,107,.82)',borderRadius:5,maxBarThickness:28}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{
+        legend:{labels:{color:chartTextColor}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label} ${c.raw}%`}},
+        valueLabelPlugin:{display:false}
+      },
+      scales:{
+        x:{stacked:true,beginAtZero:true,max:100,grid:{color:chartGrid},ticks:{color:chartTextColor,callback:v=>v+'%'}},
+        y:{stacked:true,grid:{display:false},ticks:{color:'#e8edf2',font:{size:11}}}
+      }
+    }
+  });
+
+  destroyChart('c-career-employ-dept');
+  charts['c-career-employ-dept']=new Chart(document.getElementById('c-career-employ-dept'),{
+    type:'bar',
+    data:{
+      labels:deptDisplayLabels,
+      datasets:[
+        {label:'대전 취업',data:localEmp,backgroundColor:'rgba(0,212,170,.82)',borderRadius:7,maxBarThickness:26},
+        {label:'대전 외 취업',data:outerEmp,backgroundColor:'rgba(77,166,255,.82)',borderRadius:7,maxBarThickness:26}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{
+        legend:{labels:{color:chartTextColor}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label} ${c.raw}명`}},
+        valueLabelPlugin:{suffix:'명',color:'#e8edf2'}
+      },
+      scales:{
+        x:{beginAtZero:true,grid:{color:chartGrid},ticks:{color:chartTextColor,precision:0}},
+        y:{grid:{display:false},ticks:{color:'#e8edf2',font:{size:11}}}
+      }
+    }
+  });
+
+  destroyChart('c-career-college-dept');
+  charts['c-career-college-dept']=new Chart(document.getElementById('c-career-college-dept'),{
+    type:'bar',
+    data:{
+      labels:deptDisplayLabels,
+      datasets:[
+        {label:'전문대',data:college2,backgroundColor:'rgba(255,183,64,.82)',borderRadius:7,maxBarThickness:26},
+        {label:'4년제',data:college4,backgroundColor:'rgba(167,139,250,.82)',borderRadius:7,maxBarThickness:26}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{
+        legend:{labels:{color:chartTextColor}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label} ${c.raw}명`}},
+        valueLabelPlugin:{suffix:'명',color:'#e8edf2'}
+      },
+      scales:{
+        x:{beginAtZero:true,grid:{color:chartGrid},ticks:{color:chartTextColor,precision:0}},
+        y:{grid:{display:false},ticks:{color:'#e8edf2',font:{size:11}}}
+      }
+    }
+  });
+
+
+  el.querySelectorAll('.kpi.clickable').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const key=card.dataset.preset;
+      if(key==='employed'){
+        openStudentSearchWithPreset({year:CY,label:`${CY}학년도 취업자`,status:'졸업',path:'취업'});
+      }else if(key==='college'){
+        openStudentSearchWithPreset({year:CY,label:`${CY}학년도 진학자`,status:'졸업',pathGroup:'college'});
+      }else if(key==='undecided'){
+        openStudentSearchWithPreset({year:CY,label:`${CY}학년도 미결정자`,status:'졸업',path:'미결정'});
+      }else if(key==='local-stay'){
+        openStudentSearchWithPreset({year:CY,label:`${CY}학년도 지역 정주 대상`,pathGroup:'local-stay'});
+      }
+    });
+  });
+
+  destroyChart('c-career-undecided-dept');
+  charts['c-career-undecided-dept']=new Chart(document.getElementById('c-career-undecided-dept'),{
+    type:'bar',
+    data:{
+      labels:deptDisplayLabels,
+      datasets:[
+        {label:'미결정',data:undecided,backgroundColor:'rgba(255,107,107,.82)',borderRadius:7,maxBarThickness:26}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{
+        legend:{labels:{color:chartTextColor}},
+        tooltip:{callbacks:{label:c=>` ${c.raw}명`}},
+        valueLabelPlugin:{suffix:'명',color:'#e8edf2'}
+      },
+      scales:{
+        x:{beginAtZero:true,grid:{color:chartGrid},ticks:{color:chartTextColor,precision:0}},
+        y:{grid:{display:false},ticks:{color:'#e8edf2',font:{size:11}}}
+      }
+    }
+  });
+}
+
+/* ────────────────────────────────────────────
+   출신 중학교 탭
+──────────────────────────────────────────── */
+function sortStudents(rows){
+  const key=middleSort.key,dir=middleSort.dir==='asc'?1:-1;
+  return rows.slice().sort((a,b)=>{
+    const av=a[key],bv=b[key];
+    const an=typeof av==='number'?av:toNumber(av),bn=typeof bv==='number'?bv:toNumber(bv);
+    if(an!==null&&bn!==null){if(an!==bn) return (an-bn)*dir;return String(a.이름||'').localeCompare(String(b.이름||''),'ko');}
+    return String(av??'').localeCompare(String(bv??''),'ko')*dir;
+  });
+}
+function renderStudentTable(rows){
+  const headers=[['이름','이름',false],['성별','성별',false],['중학교내신','중학교내신',true],['입학학과','입학학과',false],['상태','상태',false],['진로유형','진로유형',false],['대학회사명','대학회사명',false]];
+  const headerHtml=headers.map(([label,key,isNum])=>{
+    const active=middleSort.key===key;
+    const arrow=active?(middleSort.dir==='asc'?'▲':'▼'):'↕';
+    return `<th class="sortable ${active?'active':''} ${isNum?'num':''}" data-key="${key}">${label}<span class="sort-arrow">${arrow}</span></th>`;
+  }).join('');
+  const body=rows.map(r=>`<tr class="${selMS===r.출신중학교?'':''}">
+    <td>${escapeHtml(r.이름)}</td><td>${escapeHtml(r.성별||'-')}</td>
+    <td class="num">${r.중학교내신!==null?fmtNum(r.중학교내신,1):'-'}</td>
+    <td>${escapeHtml(r.입학학과||'-')}</td><td>${escapeHtml(r.상태||'-')}</td>
+    <td>${escapeHtml(r.진로유형||'-')}</td><td>${escapeHtml(r.대학회사명||'-')}</td>
+  </tr>`).join('');
+  return `<div style="max-height:480px;overflow:auto"><table class="stu-tbl"><thead><tr>${headerHtml}</tr></thead><tbody>${body||`<tr><td colspan="7" style="text-align:center;color:var(--text3)">데이터가 없습니다.</td></tr>`}</tbody></table></div>`;
+}
+function renderMiddle(){
+  const d=getSummary(CY);
+  const sortedMS=Object.entries(d.ms).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ko'));
+  const filteredMS=msQ?sortedMS.filter(([name])=>name.includes(msQ)):sortedMS;
+  if(!selMS&&filteredMS.length) selMS=filteredMS[0][0];
+  if(selMS&&!sortedMS.find(v=>v[0]===selMS)) selMS=filteredMS[0]?.[0]||null;
+  const studentRows=sortStudents(getRowsByYear(CY).filter(r=>r.출신중학교===selMS));
+  const el=document.getElementById('tab-middle');
+  el.innerHTML=`
+    <div class="ms-layout">
+      <div class="ms-list-card">
+        <div class="ms-list-hdr"><span>중학교 목록</span><span style="font-weight:500;color:var(--text3)">${sortedMS.length}개교 · ${fmtNum(d.total)}명</span></div>
+        <input class="ms-search" placeholder="중학교 검색... (입력 후 Enter)" value="${escapeHtml(msQ)}">
+        <div class="ms-scroll">
+          ${filteredMS.map(([name,cnt])=>`<div class="ms-item ${selMS===name?'active':''}" data-ms="${escapeHtml(name)}"><span class="ms-item-name">${escapeHtml(name)}</span><span class="ms-item-cnt">${fmtNum(cnt)}명</span></div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title"><span class="dot"></span>${CY}학년도 출신 중학교 상위 15개교</div>
+          <div class="chart-wrap" style="height:240px"><canvas id="c-ms-bar"></canvas></div>
+        </div>
+        <div class="student-card">
+          <div class="student-hdr">
+            <div class="student-hdr-title">${escapeHtml(selMS||'중학교를 선택하세요')}</div>
+            ${selMS?`<span class="student-hdr-badge">${fmtNum(d.ms[selMS]||0)}명</span>`:''}
+          </div>
+          <div class="student-toolbar">
+            <div><span class="student-tag">열 제목 클릭 시 정렬</span></div>
+            <div style="font-size:11px;color:var(--text3)">정렬: ${escapeHtml(middleSort.key)} / ${middleSort.dir==='asc'?'오름차순':'내림차순'}</div>
+          </div>
+          ${selMS?renderStudentTable(studentRows):`<div class="empty-card" style="border:none;border-radius:0"><div class="sub">좌측에서 중학교를 선택하세요.</div></div>`}
+        </div>
+      </div>
+    </div>
+  `;
+  bindImeSafeInput(el.querySelector('.ms-search'), value=>{msQ=value.trim();renderMiddle();});
+  el.querySelectorAll('.ms-item').forEach(item=>item.addEventListener('click',()=>{selMS=item.dataset.ms;renderMiddle();}));
+  el.querySelectorAll('.sortable').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const key=th.dataset.key;
+      if(middleSort.key===key) middleSort.dir=middleSort.dir==='asc'?'desc':'asc';
+      else{middleSort.key=key;middleSort.dir=key==='중학교내신'?'desc':'asc';}
+      renderMiddle();
+    });
+  });
+  const top15=sortedMS.slice(0,15);
+  destroyChart('c-ms-bar');
+  charts['c-ms-bar']=new Chart(document.getElementById('c-ms-bar'),{
+    type:'bar',
+    data:{labels:top15.map(v=>v[0]),datasets:[{data:top15.map(v=>v[1]),backgroundColor:top15.map((_,i)=>`hsl(${190+i*4},70%,${56-Math.min(i,8)*2}%)`),borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18,right:16,left:8,bottom:8}},plugins:{legend:{display:false},valueLabelPlugin:{suffix:'명',color:'#e8edf2'}},scales:{x:{grid:{display:false},ticks:{color:chartTextColor,font:{size:10},maxRotation:35,minRotation:35}},y:{beginAtZero:true,suggestedMax:addAxisPadding(top15.map(v=>v[1]),1,1.1),grid:{color:chartGrid},ticks:{color:chartTextColor,precision:0}}}}
+  });
+}
+
+/* ────────────────────────────────────────────
+   학생 조회 탭 (테이블 + 우측 상세 패널)
+──────────────────────────────────────────── */
+function stuDetailPanelHtml(r, activeTab){
+  if(!r) return `<div class="empty-detail"><div class="em">👤</div><div class="et">학생을 선택하세요</div><div class="es">좌측 목록에서 학생을 클릭하면<br>인적사항이 표시됩니다.</div></div>`;
+  const genderBadge=r.성별==='남'?'badge-male':'badge-female';
+  const statusBadge=r.상태==='졸업'?'badge-grad':r.상태==='재학'?'badge-active':'badge-other';
+  const tab=activeTab||'basic';
+  const basicHtml=`
+    <div class="detail-section">
+      <div class="detail-section-title">기본 정보</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="di-label">학생 ID</div><div class="di-val">${escapeHtml(String(r.학생ID||'-'))}</div></div>
+        <div class="detail-item"><div class="di-label">생년월일</div><div class="di-val">${escapeHtml(r.생년월일||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">전화번호</div><div class="di-val">${escapeHtml(r.전화번호||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">성별</div><div class="di-val">${escapeHtml(r.성별||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">출신 중학교</div><div class="di-val">${escapeHtml(r.출신중학교||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">중학교 내신</div><div class="di-val">${r.중학교내신!==null?fmtNum(r.중학교내신,1):'-'}</div></div>
+        <div class="detail-item"><div class="di-label">입학년도</div><div class="di-val">${r.입학년도||'-'}</div></div>
+        <div class="detail-item"><div class="di-label">입학학과</div><div class="di-val">${escapeHtml(r.입학학과||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">현재 상태</div><div class="di-val">${escapeHtml(r.상태||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">졸업여부</div><div class="di-val">${escapeHtml(r.졸업여부||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">졸업년도</div><div class="di-val">${r.졸업년도||'-'}</div></div>
+        <div class="detail-item"><div class="di-label">학생구분</div><div class="di-val">${escapeHtml(r.학생구분||'-')}</div></div>
+      </div>
+    </div>`;
+  const careerHtml=r.상태==='졸업'?`
+    <div class="detail-section">
+      <div class="detail-section-title">진로 정보</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="di-label">진로유형</div><div class="di-val">${escapeHtml(r.진로유형||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">지역</div><div class="di-val">${escapeHtml(r.지역||'-')}</div></div>
+        <div class="detail-item full"><div class="di-label">대학 / 회사명</div><div class="di-val">${escapeHtml(r.대학회사명||'-')}</div></div>
+        <div class="detail-item full"><div class="di-label">학과 / 직무</div><div class="di-val">${escapeHtml(r.학과직무||'-')}</div></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">사후관리</div>
+      <div class="detail-grid">
+        <div class="detail-item full"><div class="di-label">졸업 1년 후 관리</div><div class="di-val">${escapeHtml(r.졸업1년사후관리||'-')}</div></div>
+        <div class="detail-item full"><div class="di-label">졸업 2년 후 관리</div><div class="di-val">${escapeHtml(r.졸업2년사후관리||'-')}</div></div>
+        ${r.비고?`<div class="detail-item full"><div class="di-label">비고</div><div class="di-val">${escapeHtml(r.비고)}</div></div>`:''}
+      </div>
+    </div>`:
+    `<div style="padding:30px;text-align:center;font-size:12px;color:var(--text3)">재학생은 진로 정보가 없습니다.</div>`;
+  const content=tab==='basic'?basicHtml:careerHtml;
+  return `
+    <div class="detail-hdr">
+      <div class="detail-name">${escapeHtml(r.이름)}</div>
+      <div class="detail-badges">
+        <span class="detail-badge ${genderBadge}">${escapeHtml(r.성별||'-')}</span>
+        <span class="detail-badge ${statusBadge}">${escapeHtml(r.상태||'-')}</span>
+      </div>
+    </div>
+    <div class="detail-tab-row">
+      <button class="detail-tab-btn ${tab==='basic'?'active':''}" data-dtab="basic">기본 정보</button>
+      <button class="detail-tab-btn ${tab==='career'?'active':''}" data-dtab="career">진로/사후관리</button>
+    </div>
+    ${content}`;
+}
+
+function clearStudentPresetFilter(){
+  studentPresetFilter=null;
+}
+function applyStudentPresetFilter(rows){
+  if(!studentPresetFilter) return rows;
+  return rows.filter(r=>{
+    if(studentPresetFilter.year && r.입학년도!==studentPresetFilter.year) return false;
+    if(studentPresetFilter.status && r.상태!==studentPresetFilter.status) return false;
+    if(studentPresetFilter.path && r.진로유형!==studentPresetFilter.path) return false;
+    if(studentPresetFilter.regionType==='local-employ'){
+      return r.상태==='졸업' && r.진로유형==='취업' && r.지역==='대전';
+    }
+    if(studentPresetFilter.regionType==='outer-employ'){
+      return r.상태==='졸업' && r.진로유형==='취업' && r.지역!=='대전';
+    }
+    if(studentPresetFilter.pathGroup==='college'){
+      return r.상태==='졸업' && ['전문대','4년제'].includes(r.진로유형);
+    }
+    if(studentPresetFilter.pathGroup==='local-stay'){
+      return r.상태==='졸업' && ((r.진로유형==='취업' && r.지역==='대전') || (['전문대','4년제'].includes(r.진로유형) && r.지역==='대전'));
+    }
+    return true;
+  });
+}
+function openStudentSearchWithPreset(preset){
+  studentPresetFilter=preset||null;
+  if(preset && preset.year){
+    searchQ.grade=String(preset.year);
+  }
+  selStudentIdx=null;
+  setTab('student-search');
+}
+function studentPresetLabel(){
+  if(!studentPresetFilter) return '';
+  if(studentPresetFilter.label) return studentPresetFilter.label;
+  return '선택된 지표 기준 필터';
+}
+
+function renderStudentSearch(){
+  const allYears=[...new Set(DB.map(r=>r.입학년도).filter(Boolean))].sort((a,b)=>a-b);
+  const allDepts=[...new Set(DB.map(r=>r.입학학과).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'ko'));
+  const allStatuses=[...new Set(DB.map(r=>r.상태).filter(Boolean))];
+
+  let results=DB.filter(r=>{
+    const nQ=searchQ.name.trim();
+    const mQ=searchQ.middle.trim();
+    const dQ=searchQ.dept.trim();
+    const sQ=searchQ.status.trim();
+    if(nQ){
+      const hit = r.이름.includes(nQ)
+        || String(r.학생ID||'').includes(nQ)
+        || String(r.출신중학교||'').includes(nQ)
+        || String(r.대학회사명||'').includes(nQ)
+        || String(r.입학학과||'').includes(nQ);
+      if(!hit) return false;
+    }
+    if(mQ&&!r.출신중학교.includes(mQ)) return false;
+    if(dQ&&r.입학학과!==dQ) return false;
+    if(sQ&&r.상태!==sQ) return false;
+    if(searchQ.grade!=='전체'&&String(r.입학년도)!==searchQ.grade) return false;
+    return true;
+  });
+
+  results=applyStudentPresetFilter(results);
+  const selR=selStudentIdx!==null?results[selStudentIdx]||null:null;
+  const el=document.getElementById('tab-student-search');
+  el.innerHTML=`
+    ${studentPresetFilter?`<div class="filter-banner"><span><strong>지표 연결 필터 적용:</strong> ${escapeHtml(studentPresetLabel())}</span><button class="filter-clear-btn" id="clear-preset-filter">필터 해제</button></div>`:''}
+    <div class="stu-search-bar">
+      <input class="stu-search-input" id="sq-unified" placeholder="이름, 학생ID, 중학교, 대학/회사명 검색... (Enter)" value="${escapeHtml(searchQ.name)}">
+      <select class="stu-filter-select" id="sq-dept">
+        <option value="">전체 학과</option>
+        ${allDepts.map(d=>`<option value="${escapeHtml(d)}" ${searchQ.dept===d?'selected':''}>${escapeHtml(d)}</option>`).join('')}
+      </select>
+      <select class="stu-filter-select" id="sq-status">
+        <option value="">전체 상태</option>
+        ${allStatuses.map(s=>`<option value="${escapeHtml(s)}" ${searchQ.status===s?'selected':''}>${escapeHtml(s)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="stu-yr-tabs">
+      ${['전체',...allYears.map(String)].map(y=>`<button class="stu-yr-tab ${searchQ.grade===y?'active':''}" data-yr="${y}">${y==='전체'?'전체':y+'학년도'}</button>`).join('')}
+    </div>
+    <div class="stu-main-layout">
+      <div class="stu-table-card">
+        <div class="stu-table-hdr">
+          <span>${searchQ.grade==='전체'?'전체 학년도 학생 조회':searchQ.grade+'학년도 학생 조회'}</span>
+          <span style="color:var(--text3);font-weight:500">검색 결과 ${results.length}명 / 전체 ${DB.length}명</span>
+        </div>
+        <div class="stu-table-body">
+          <table class="stu-main-tbl">
+            <thead><tr>
+              <th>이름</th><th>학생ID</th><th>학과</th><th>상태</th><th>진로유형</th><th>지역</th><th>사후관리대상</th><th>위험도</th>
+            </tr></thead>
+            <tbody>
+              ${results.length===0?`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">검색 조건에 맞는 학생이 없습니다.</td></tr>`:
+                results.map((r,i)=>{
+                  const chipCls=r.진로유형==='취업'?'chip-employ':['전문대','4년제'].includes(r.진로유형)?'chip-college':r.진로유형==='미결정'?'chip-undecided':'';
+                  const riskColor=r.사후관리대상==='확인필요'?'var(--amber)':'var(--text3)';
+                  return `<tr class="${selStudentIdx===i?'row-active':''}" data-ridx="${i}">
+                    <td class="stu-name-cell">${escapeHtml(r.이름)}</td>
+                    <td class="stu-id-cell">${escapeHtml(String(r.학생ID||'-'))}</td>
+                    <td>${escapeHtml(r.입학학과||'-')}</td>
+                    <td>${escapeHtml(r.상태||'-')}</td>
+                    <td>${r.진로유형?`<span class="status-chip ${chipCls}">${escapeHtml(r.진로유형)}</span>`:'-'}</td>
+                    <td>${escapeHtml(r.지역||'-')}</td>
+                    <td>${escapeHtml(r.사후관리대상||'-')}</td>
+                    <td><span style="color:${riskColor};font-weight:700;font-size:11px">${escapeHtml(r.사후관리대상||'-')}</span></td>
+                  </tr>`;
+                }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="student-detail" id="stu-detail-panel">
+        ${stuDetailPanelHtml(selR, stuDetailTab)}
+      </div>
+    </div>
+  `;
+  // 이벤트
+  const uInput=el.querySelector('#sq-unified');
+  bindImeSafeInput(uInput, value=>{searchQ.name=value;selStudentIdx=null;renderStudentSearch();});
+  uInput.addEventListener('input',e=>{
+    if(isComposing) return;
+    searchQ.name=e.target.value;
+    selStudentIdx=null;
+    renderStudentSearch();
+  });
+  uInput.addEventListener('keydown',e=>{if(e.key==='Enter'){searchQ.name=e.target.value;selStudentIdx=null;renderStudentSearch();}});
+  if(studentPresetFilter && el.querySelector('#clear-preset-filter')){el.querySelector('#clear-preset-filter').addEventListener('click',()=>{clearStudentPresetFilter();renderStudentSearch();});}
+  el.querySelector('#sq-dept').addEventListener('change',e=>{searchQ.dept=e.target.value;selStudentIdx=null;renderStudentSearch();});
+  el.querySelector('#sq-status').addEventListener('change',e=>{searchQ.status=e.target.value;selStudentIdx=null;renderStudentSearch();});
+  el.querySelectorAll('.stu-yr-tab').forEach(btn=>btn.addEventListener('click',()=>{searchQ.grade=btn.dataset.yr;selStudentIdx=null;renderStudentSearch();}));
+  el.querySelectorAll('table.stu-main-tbl tr[data-ridx]').forEach(row=>{
+    row.addEventListener('click',()=>{
+      const idx=parseInt(row.dataset.ridx);
+      selStudentIdx=idx;
+      stuDetailTab='basic';
+      const panel=document.getElementById('stu-detail-panel');
+      panel.innerHTML=stuDetailPanelHtml(results[idx], stuDetailTab);
+      el.querySelectorAll('table.stu-main-tbl tr').forEach(r2=>r2.classList.toggle('row-active',r2===row));
+      bindDetailTabs(panel, results[idx]);
+    });
+  });
+  if(selR){
+    bindDetailTabs(document.getElementById('stu-detail-panel'), selR);
+  }
+}
+function bindDetailTabs(panel, r){
+  panel.querySelectorAll('.detail-tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      stuDetailTab=btn.dataset.dtab;
+      panel.innerHTML=stuDetailPanelHtml(r,stuDetailTab);
+      bindDetailTabs(panel,r);
+    });
+  });
+}
+
+/* ────────────────────────────────────────────
+   졸업생 사후관리 탭
+──────────────────────────────────────────── */
+function showToast(msg){
+  const t=document.getElementById('save-toast');
+  if(msg) t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+function gradDetailHtml(r, idx){
+  if(!r) return `<div class="empty-detail"><div class="em">🎓</div><div class="et">졸업생을 선택하세요</div><div class="es">목록에서 학생을 클릭하면<br>상세 정보가 표시됩니다.</div></div>`;
+  const chipCls=r.진로유형==='취업'?'chip-employ':['전문대','4년제'].includes(r.진로유형)?'chip-college':r.진로유형==='미결정'?'chip-undecided':'badge-other';
+  const genderBadge=r.성별==='남'?'badge-male':'badge-female';
+  return `
+    <div class="detail-hdr">
+      <div class="detail-name">${escapeHtml(r.이름)}</div>
+      <div class="detail-badges">
+        <span class="detail-badge ${genderBadge}">${escapeHtml(r.성별||'-')}</span>
+        <span class="detail-badge badge-grad">졸업 ${r.졸업년도||''}</span>
+        <span class="status-chip ${chipCls}" style="font-size:11px">${escapeHtml(r.진로유형||'-')}</span>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">학적 및 진로</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="di-label">입학년도</div><div class="di-val">${r.입학년도||'-'}</div></div>
+        <div class="detail-item"><div class="di-label">졸업년도</div><div class="di-val">${r.졸업년도||'-'}</div></div>
+        <div class="detail-item full"><div class="di-label">입학학과</div><div class="di-val">${escapeHtml(r.입학학과||'-')}</div></div>
+        <div class="detail-item full"><div class="di-label">대학 / 회사명</div><div class="di-val">${escapeHtml(r.대학회사명||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">지역</div><div class="di-val">${escapeHtml(r.지역||'-')}</div></div>
+        <div class="detail-item"><div class="di-label">전화번호</div><div class="di-val">${escapeHtml(r.전화번호||'-')}</div></div>
+      </div>
+    </div>
+    <div class="aftercare-section">
+      <div class="aftercare-title">📝 사후관리 기록 입력 (저장하면 엑셀에 반영됩니다)</div>
+      <div class="aftercare-field">
+        <label>졸업 1년 후 관리</label>
+        <textarea id="ac-1yr" placeholder="한글, 영어, 숫자 등 자유롭게 입력...">${escapeHtml(r.졸업1년사후관리||'')}</textarea>
+      </div>
+      <div class="aftercare-field">
+        <label>졸업 2년 후 관리</label>
+        <textarea id="ac-2yr" placeholder="한글, 영어, 숫자 등 자유롭게 입력...">${escapeHtml(r.졸업2년사후관리||'')}</textarea>
+      </div>
+      <div class="aftercare-field">
+        <label>비고</label>
+        <textarea id="ac-note" placeholder="특이사항, 메모 등...">${escapeHtml(r.비고||'')}</textarea>
+      </div>
+      <button class="aftercare-save-btn" data-dbidx="${idx}">💾 저장 및 엑셀 반영</button>
+    </div>`;
+}
+function renderGraduates(){
+  const allGrads=DB.filter(r=>r.상태==='졸업'||r.졸업여부==='예');
+  const gradYears=['전체',...[...new Set(allGrads.map(r=>r.졸업년도).filter(Boolean))].sort((a,b)=>a-b).map(String)];
+  const filteredTypes=['전체','취업','전문대','4년제','미결정'];
+
+  let filtered=allGrads.filter(r=>{
+    if(gradFilter!=='전체'&&r.진로유형!==gradFilter) return false;
+    if(gradYear!=='전체'&&String(r.졸업년도)!==gradYear) return false;
+    if(gradSearch){
+      const q=gradSearch;
+      if(!r.이름.includes(q)&&!r.출신중학교.includes(q)&&!r.입학학과.includes(q)&&!String(r.입학년도).includes(q)&&!r.대학회사명.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const selGrad=selGradIdx!==null&&filtered[selGradIdx]?filtered[selGradIdx]:null;
+  const totalGrads=allGrads.length;
+  const empCnt=allGrads.filter(r=>r.진로유형==='취업').length;
+  const colCnt=allGrads.filter(r=>['전문대','4년제'].includes(r.진로유형)).length;
+  const undCnt=allGrads.filter(r=>r.진로유형==='미결정').length;
+  const afterCnt=allGrads.filter(r=>r.사후관리대상==='확인필요').length;
+
+  const el=document.getElementById('tab-graduates');
+  el.innerHTML=`
+    <div class="grad-layout">
+      <div>
+        <div class="grad-yr-tabs">
+          ${gradYears.map(y=>`<button class="grad-yr-tab ${gradYear===y?'active':''}" data-yr="${y}">${y==='전체'?'전체 학년도':y+'년 졸업'}</button>`).join('')}
+        </div>
+        <div class="grad-filter-row">
+          ${filteredTypes.map(t=>`<button class="grad-filter-btn ${gradFilter===t?'active':''}" data-type="${t}">${t}</button>`).join('')}
+          <input class="grad-search" type="text" id="grad-search-input" placeholder="이름, 학과, 학교 검색... (Enter)" value="${escapeHtml(gradSearch)}">
+        </div>
+        <div class="grad-table-wrap">
+          <div class="grad-table-hdr">
+            <span>졸업생 사후관리 목록</span>
+            <span style="color:var(--text3);font-weight:500">표시 ${filtered.length}명 / 전체 ${totalGrads}명 · <span style="color:var(--amber)">확인필요 ${afterCnt}명</span></span>
+          </div>
+          <div class="grad-table-scroll">
+            <table class="stu-tbl">
+              <thead><tr>
+                <th>이름</th><th>성별</th><th>입학년도</th><th>졸업년도</th><th>입학학과</th><th>진로유형</th><th>대학/회사명</th><th>지역</th>
+                <th>졸업 1년 후 관리</th><th>졸업 2년 후 관리</th>
+              </tr></thead>
+              <tbody>
+                ${filtered.length===0?`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:30px">해당 조건의 졸업생이 없습니다.</td></tr>`:
+                  filtered.map((r,i)=>{
+                    const chipCls=r.진로유형==='취업'?'chip-employ':['전문대','4년제'].includes(r.진로유형)?'chip-college':r.진로유형==='미결정'?'chip-undecided':'badge-other';
+                    return `<tr style="cursor:pointer" data-gidx="${i}" class="${selGradIdx===i?'row-active':''}">
+                      <td style="font-weight:700">${escapeHtml(r.이름)}</td>
+                      <td>${escapeHtml(r.성별||'-')}</td>
+                      <td>${r.입학년도||'-'}</td>
+                      <td>${r.졸업년도||'-'}</td>
+                      <td>${escapeHtml(r.입학학과||'-')}</td>
+                      <td><span class="status-chip ${chipCls}">${escapeHtml(r.진로유형||'-')}</span></td>
+                      <td>${escapeHtml(r.대학회사명||'-')}</td>
+                      <td>${escapeHtml(r.지역||'-')}</td>
+                      <td style="color:${r.졸업1년사후관리?'var(--teal)':'var(--text3)'}">${escapeHtml(r.졸업1년사후관리||'미입력')}</td>
+                      <td style="color:${r.졸업2년사후관리?'var(--teal)':'var(--text3)'}">${escapeHtml(r.졸업2년사후관리||'미입력')}</td>
+                    </tr>`;
+                  }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="grad-stat-mini">
+          <div class="stat-box"><div class="sb-label">전체 졸업생</div><div class="sb-val">${totalGrads}명</div></div>
+          <div class="stat-box"><div class="sb-label">취업자</div><div class="sb-val" style="color:var(--teal)">${empCnt}명</div></div>
+          <div class="stat-box"><div class="sb-label">진학자</div><div class="sb-val" style="color:var(--purple)">${colCnt}명</div></div>
+          <div class="stat-box"><div class="sb-label">사후관리 필요</div><div class="sb-val" style="color:var(--amber)">${afterCnt}명</div></div>
+        </div>
+        <div class="grad-detail-panel" id="grad-detail-panel">
+          ${gradDetailHtml(selGrad, selGradIdx)}
+        </div>
+      </div>
+    </div>
+  `;
+  el.querySelectorAll('.grad-yr-tab').forEach(btn=>btn.addEventListener('click',()=>{gradYear=btn.dataset.yr;selGradIdx=null;renderGraduates();}));
+  el.querySelectorAll('.grad-filter-btn').forEach(btn=>btn.addEventListener('click',()=>{gradFilter=btn.dataset.type;selGradIdx=null;renderGraduates();}));
+  bindImeSafeInput(el.querySelector('#grad-search-input'), value=>{gradSearch=value.trim();selGradIdx=null;renderGraduates();});
+  el.querySelectorAll('.grad-table-scroll tr[data-gidx]').forEach(row=>{
+    row.addEventListener('click',()=>{
+      const idx=parseInt(row.dataset.gidx);
+      selGradIdx=idx;
+      const panel=document.getElementById('grad-detail-panel');
+      panel.innerHTML=gradDetailHtml(filtered[idx], idx);
+      el.querySelectorAll('.grad-table-scroll tr').forEach(tr=>tr.classList.remove('row-active'));
+      row.classList.add('row-active');
+      bindGradSave(panel, filtered[idx]);
+    });
+  });
+  if(selGrad) bindGradSave(document.getElementById('grad-detail-panel'), selGrad);
+}
+function bindGradSave(panel, r){
+  const btn=panel.querySelector('.aftercare-save-btn');
+  if(!btn) return;
+  btn.addEventListener('click',()=>{
+    const v1=panel.querySelector('#ac-1yr').value.trim();
+    const v2=panel.querySelector('#ac-2yr').value.trim();
+    const vn=panel.querySelector('#ac-note').value.trim();
+    // DB 및 원본 시트 데이터에 반영
+    r.졸업1년사후관리=v1;
+    r.졸업2년사후관리=v2;
+    r.비고=vn;
+    syncRowToOriginal(r);
+    // 직접 연결 모드면 원본 파일에 바로 저장, 아니면 안내
+    if(canDirectWrite && workbookFileHandle){
+      saveWorkbookToOriginal();
+    }else{
+      showToast('✅ 저장 완료 — 상단 "원본 파일에 저장" 또는 "엑셀 내보내기"를 이용하세요');
+    }
+  });
+}
+
+/* ────────────────────────────────────────────
+   산출식 · 목표치 탭
+──────────────────────────────────────────── */
+const METRIC_FORMULAS=[
+  {type:'필수지표',metric:'직업기초능력평가 4~5등급 비율',formula:'직업기초능력평가 4~5등급 학생 수 / 직업기초능력평가 응시 학생 수 × 100'},
+  {type:'필수지표',metric:'중도탈락률',formula:'중도탈락 학생 수 / 해당 학년도 입학생 수 × 100'},
+  {type:'필수지표',metric:'진로 미결정률',formula:'진로 미결정 학생 수 / 졸업자 수 × 100'},
+  {type:'필수지표',metric:'순취업률',formula:'취업자 수 / 졸업자 수 × 100'},
+  {type:'필수지표',metric:'지역 내 취업률',formula:'지역 내 취업자 수 / 전체 취업자 수 × 100'},
+  {type:'필수지표',metric:'지역 거버넌스 참여자 및 핵심관계자 만족도',formula:'만족도 조사 점수 합계 / 응답자 수 또는 만족 응답 비율'},
+  {type:'필수지표',metric:'지역 정주율',formula:'(지역 내 취업자 수 + 지역 내 진학자 수) / 졸업자 수 × 100'},
+  {type:'자율지표',metric:'자격증 취득률',formula:'자격증 취득 학생 수 / 전체 학생 수 × 100'},
+  {type:'자율지표',metric:'교원 1인당 연수시간',formula:'교원 연수 총시간 / 교원 수'},
+  {type:'자율지표',metric:'전공동아리 수',formula:'학년도별 운영 전공동아리 수'},
+  {type:'자율지표',metric:'신입생 충원율',formula:'입학생 수 / 모집정원 × 100'},
+  {type:'자율지표',metric:'협약기업 수',formula:'협약기업 수(누적)'}
+];
+const TARGET_PLAN_2026_2030=[
+  {type:'필수지표',metric:'직업기초능력평가 4~5등급 비율',y2026:'40',y2027:'35',y2028:'30',y2029:'25',y2030:'21.8'},
+  {type:'필수지표',metric:'중도탈락률',y2026:'3',y2027:'2.8',y2028:'2.6',y2029:'2.3',y2030:'1.3'},
+  {type:'필수지표',metric:'진로 미결정률',y2026:'9',y2027:'8',y2028:'7',y2029:'6',y2030:'5'},
+  {type:'필수지표',metric:'순취업률',y2026:'45',y2027:'48',y2028:'52',y2029:'56',y2030:'57.6'},
+  {type:'필수지표',metric:'지역 내 취업률',y2026:'87',y2027:'87',y2028:'88',y2029:'89',y2030:'90'},
+  {type:'필수지표',metric:'지역 거버넌스 참여자 및 핵심관계자 만족도',y2026:'70',y2027:'72',y2028:'75',y2029:'80',y2030:'85'},
+  {type:'필수지표',metric:'지역 정주율',y2026:'87',y2027:'88',y2028:'88',y2029:'89',y2030:'90'},
+  {type:'자율지표',metric:'자격증 취득률',y2026:'50',y2027:'52',y2028:'55',y2029:'60',y2030:'65'},
+  {type:'자율지표',metric:'교원 1인당 연수시간',y2026:'60',y2027:'70',y2028:'80',y2029:'90',y2030:'100'},
+  {type:'자율지표',metric:'전공동아리 수',y2026:'10',y2027:'11',y2028:'12',y2029:'13',y2030:'15'},
+  {type:'자율지표',metric:'신입생 충원율',y2026:'100',y2027:'100',y2028:'100',y2029:'100',y2030:'100'},
+  {type:'자율지표',metric:'협약기업 수',y2026:'82',y2027:'83',y2028:'85',y2029:'87',y2030:'90'}
+];
+function renderMetrics(){
+  const el=document.getElementById('tab-metrics');
+  el.innerHTML=`
+    <div class="grid-row metrics-grid">
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>성과지표 산출식</div>
+        <div class="metrics-note" style="margin-bottom:10px">성과지표 산출 기준을 한눈에 정리한 화면입니다.</div>
+        <div class="metrics-table-wrap">
+          <table class="metrics-table">
+            <thead><tr><th style="width:90px">구분</th><th style="width:250px">항목</th><th>산출식</th></tr></thead>
+            <tbody>
+              ${METRIC_FORMULAS.map(r=>`<tr><td><span class="metrics-chip ${r.type==='필수지표'?'req':'opt'}">${r.type}</span></td><td>${r.metric}</td><td>${r.formula}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="dot"></span>2026~2030 성과 목표치</div>
+        <div class="metrics-note" style="margin-bottom:10px">2026년부터 2030년까지 연도별 목표치를 정리했습니다.</div>
+        <div class="metrics-table-wrap">
+          <table class="metrics-table">
+            <thead><tr><th style="width:90px">구분</th><th>항목</th><th class="metrics-year">2026</th><th class="metrics-year">2027</th><th class="metrics-year">2028</th><th class="metrics-year">2029</th><th class="metrics-year">2030</th></tr></thead>
+            <tbody>
+              ${TARGET_PLAN_2026_2030.map(r=>`<tr><td><span class="metrics-chip ${r.type==='필수지표'?'req':'opt'}">${r.type}</span></td><td>${r.metric}</td><td>${r.y2026}</td><td>${r.y2027}</td><td>${r.y2028}</td><td>${r.y2029}</td><td>${r.y2030}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ────────────────────────────────────────────
+   엑셀 로드
+──────────────────────────────────────────── */
+async function loadWorkbookFromArrayBuffer(buffer,name=''){
+  const workbook=XLSX.read(buffer,{type:'array'});
+  rawWorkbook=workbook;
+  dbSheetName = workbook.Sheets['학생통합DB'] ? '학생통합DB' : workbook.SheetNames[0];
+  const dbSheet=workbook.Sheets[dbSheetName]||workbook.Sheets[workbook.SheetNames[0]];
+  const targetSheet=workbook.Sheets[workbook.SheetNames[1]]||workbook.Sheets['Sheet1'];
+  if(!dbSheet){
+    setFileStatus('학생통합DB 시트를 찾지 못함','warn');
+    setLoadBanner('<strong>학생통합DB</strong> 시트를 찾지 못했습니다. 엑셀 구조를 확인해주세요.','warn',true);
+    return;
+  }
+  const rawRows=XLSX.utils.sheet_to_json(dbSheet,{defval:''});
+  const rawAoa=XLSX.utils.sheet_to_json(dbSheet,{header:1,defval:''});
+  originalHeaders=(rawAoa[0]||[]).map(v=>String(v||'').trim());
+  originalSheetRows=rawRows.map(r=>({...r}));
+  DB=rawRows.map((r,i)=>normalizeRow(r,i)).filter(r=>r.이름&&r.입학년도);
+  YEARS=[...new Set(DB.map(r=>r.입학년도).filter(Boolean))].sort((a,b)=>a-b);
+  metricsMap=targetSheet?parseMetrics(targetSheet):{};
+  summaryCache={};
+  selStudentIdx=null; selGradIdx=null; gradSearch=''; gradYear='전체';
+  workbookName=name||workbookName||DEFAULT_XLSX;
+  setFileStatus(DB.length?`엑셀 연결 완료 · ${workbookName}`:'데이터 없음',DB.length?'ok':'warn');
+  setLoadBanner(`<strong>${escapeHtml(workbookName)}</strong> 불러오기 완료 · 학생 ${fmtNum(DB.length)}명 · 데이터 학년도 ${YEARS.join(', ')} · 목표치는 2번째 시트 기준`,'ok',true);
+  if(DB.length) document.getElementById('export-btn').style.display='';
+  document.getElementById('save-direct-btn').style.display = canDirectWrite ? '' : 'none';
+  renderAll();
+}
+async function tryAutoLoadDefaultFile(){
+  try{
+    const res=await fetch('/api/excel');
+    if(!res.ok){
+      setFileStatus('엑셀 파일 없음','warn');
+      setLoadBanner('관리자가 아직 엑셀 파일을 업로드하지 않았습니다. 관리자에게 문의하세요.','warn',true);
+      renderAll();
+      return;
+    }
+    const buffer=await res.arrayBuffer();
+    const meta=await fetch('/api/excel-meta').then(r=>r.json()).catch(()=>({meta:null}));
+    const fname=(meta.meta&&meta.meta.filename)||DEFAULT_XLSX;
+    await loadWorkbookFromArrayBuffer(buffer, fname);
+  }catch(err){
+    setFileStatus('엑셀 연결 대기','warn');
+    setLoadBanner('엑셀 파일을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.','warn',true);
+    renderAll();
+  }
+}
+document.getElementById('pick-file-btn').addEventListener('click',()=>document.getElementById('file-input').click());
+document.getElementById('file-input').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];
+  if(!file) return;
+  workbookName=file.name;
+  workbookFileHandle=null;
+  canDirectWrite=false;
+  document.getElementById('save-direct-btn').style.display='none';
+  const buffer=await file.arrayBuffer();
+  await loadWorkbookFromArrayBuffer(buffer,file.name);
+  e.target.value='';
+});
+document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>setTab(btn.dataset.tab)));
+document.getElementById('export-btn').addEventListener('click', exportWorkbook);
+document.getElementById('open-rw-btn').addEventListener('click', openWorkbookWithHandle);
+document.getElementById('save-direct-btn').addEventListener('click', saveWorkbookToOriginal);
+
+// ─── 인증 초기화 ─────────────────────────────────
+(async function initAuth(){
+  try{
+    const res=await fetch('/api/me');
+    if(!res.ok){ window.location.href='/'; return; }
+    const {user}=await res.json();
+    currentUser=user;
+    currentRole=user.role || 'viewer';
+    document.getElementById('user-badge').textContent=`${user.name} (${user.role==='admin'?'관리자':'뷰어'})`;
+    applyRoleUi();
+    renderAll();
+    tryAutoLoadDefaultFile();
+  }catch(e){
+    window.location.href='/';
+  }
+})();
+
+// ─── 로그아웃 ─────────────────────────────────────
+async function doLogout(){
+  await fetch('/api/logout',{method:'POST'});
+  window.location.href='/';
+}
+
+// ─── 관리자 패널 ──────────────────────────────────
+async function openAdminPanel(){
+  document.getElementById('admin-modal').style.display='flex';
+  // 엑셀 메타 정보 로드
+  try{
+    const r=await fetch('/api/excel-meta');
+    const {meta}=await r.json();
+    const el=document.getElementById('excel-meta-info');
+    if(meta){
+      const dt=new Date(meta.uploadedAt).toLocaleString('ko-KR');
+      el.innerHTML=`현재 파일: <strong style="color:var(--teal)">${escapeHtml(meta.filename)}</strong><br>업로드: ${dt} · ${meta.uploadedBy}`;
+    } else {
+      el.textContent='아직 업로드된 파일이 없습니다.';
+    }
+  }catch(e){
+    document.getElementById('excel-meta-info').textContent='메타 정보를 불러올 수 없습니다.';
+  }
+  // 사용자 목록 로드
+  loadUserList();
+}
+
+// 엑셀 업로드
+document.getElementById('admin-excel-input').addEventListener('change', async e=>{
+  const file=e.target.files?.[0];
+  if(!file) return;
+  const resultEl=document.getElementById('upload-result');
+  resultEl.style.display='block';
+  resultEl.style.color='var(--text2)';
+  resultEl.textContent='업로드 중...';
+  const form=new FormData();
+  form.append('excel',file);
+  try{
+    const res=await fetch('/api/upload',{method:'POST',body:form});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error);
+    resultEl.style.color='var(--green)';
+    resultEl.textContent='✅ 업로드 완료! 대시보드를 새로고침합니다...';
+    setTimeout(()=>window.location.reload(),1500);
+  }catch(err){
+    resultEl.style.color='var(--coral)';
+    resultEl.textContent='❌ ' + err.message;
+  }
+  e.target.value='';
+});
+
+// 사용자 목록
+async function loadUserList(){
+  const el=document.getElementById('user-list');
+  el.innerHTML='<div style="font-size:11px;color:var(--text3)">불러오는 중...</div>';
+  try{
+    const r=await fetch('/api/users');
+    const {users}=await r.json();
+    if(!users.length){ el.textContent='사용자 없음'; return; }
+    el.innerHTML=users.map(u=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
+        <div>
+          <span style="font-size:12px;font-weight:700">${escapeHtml(u.name)}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:6px">${escapeHtml(u.id)}</span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:999px;margin-left:4px;${u.role==='admin'?'background:rgba(77,166,255,.12);color:var(--blue)':'background:rgba(255,255,255,.06);color:var(--text2)'}">${u.role==='admin'?'관리자':'뷰어'}</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${u.id!=='admin'?`<button onclick="deleteUser('${u.id}')" style="padding:4px 9px;border-radius:6px;border:1px solid rgba(255,107,107,.25);background:rgba(255,107,107,.08);color:var(--coral);font-size:10px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">삭제</button>`:''}
+        </div>
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML='<div style="color:var(--coral);font-size:11px;">불러오기 실패</div>';
+  }
+}
+
+async function addUser(){
+  const id=document.getElementById('new-uid').value.trim();
+  const name=document.getElementById('new-uname').value.trim();
+  const pw=document.getElementById('new-upw').value;
+  const resultEl=document.getElementById('user-add-result');
+  resultEl.style.display='block';
+  if(!id||!name||!pw){ resultEl.style.color='var(--coral)'; resultEl.textContent='모든 항목을 입력해주세요.'; return; }
+  try{
+    const res=await fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,name,password:pw,role:'viewer'})});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error);
+    resultEl.style.color='var(--green)'; resultEl.textContent='✅ 계정이 추가되었습니다.';
+    document.getElementById('new-uid').value='';
+    document.getElementById('new-uname').value='';
+    document.getElementById('new-upw').value='';
+    loadUserList();
+  }catch(e){
+    resultEl.style.color='var(--coral)'; resultEl.textContent='❌ ' + e.message;
+  }
+}
+
+async function deleteUser(uid){
+  if(!confirm(`"${uid}" 계정을 삭제하시겠습니까?`)) return;
+  try{
+    const res=await fetch(`/api/users/${uid}`,{method:'DELETE'});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error);
+    loadUserList();
+  }catch(e){
+    alert('삭제 실패: ' + e.message);
+  }
+}
+</script>
+
+<script>
+function exportPDF(){
+  window.print();
+}
+</script>
+
+<button onclick="exportPDF()" style="
+position:fixed;bottom:20px;right:20px;
+background:#00d4aa;color:#000;
+padding:10px 16px;border:none;border-radius:8px;
+font-weight:bold;cursor:pointer;">
+📄 보고서 출력
+</button>
+
+</body>
+</html>

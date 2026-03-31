@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대생인재로 · 로그인</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d1b2a;--navy2:#132033;--navy3:#1a2d44;
+  --panel:#162030;--panel2:#1e2d40;
+  --border:rgba(255,255,255,0.08);
+  --teal:#00d4aa;--teal2:#00a87e;
+  --blue:#4da6ff;--amber:#ffb740;--coral:#ff6b6b;
+  --text:#e8edf2;--text2:#9eb0c4;--text3:#5d748d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--navy);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+/* 배경 효과 */
+.bg-orb{
+  position:fixed;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none;
+}
+.bg-orb-1{width:500px;height:500px;background:var(--teal);top:-100px;left:-100px;}
+.bg-orb-2{width:400px;height:400px;background:var(--blue);bottom:-80px;right:-60px;}
+.bg-grid{
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+.login-wrap{
+  position:relative;z-index:1;
+  width:100%;max-width:400px;padding:20px;
+}
+.login-brand{text-align:center;margin-bottom:36px;}
+.login-logo-circle{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 14px;
+  box-shadow:0 0 30px rgba(0,212,170,.3);
+  font-size:28px;
+}
+.login-title{font-size:24px;font-weight:900;letter-spacing:-.5px;}
+.login-subtitle{font-size:12px;color:var(--text3);margin-top:5px;letter-spacing:.5px;}
+
+.login-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:28px 26px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.field{margin-bottom:16px;}
+.field label{
+  display:block;font-size:11px;font-weight:700;
+  color:var(--text2);letter-spacing:.4px;margin-bottom:7px;
+}
+.field input{
+  width:100%;padding:12px 14px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--panel2);
+  font-size:14px;color:var(--text);
+  outline:none;
+  font-family:'Noto Sans KR',sans-serif;
+  transition:border-color .2s,box-shadow .2s;
+}
+.field input:focus{
+  border-color:var(--teal);
+  box-shadow:0 0 0 3px rgba(0,212,170,.1);
+}
+.field input::placeholder{color:var(--text3);}
+
+.login-btn{
+  width:100%;padding:13px;margin-top:4px;
+  border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  color:var(--navy);
+  font-size:14px;font-weight:900;
+  cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;
+  transition:opacity .2s,transform .1s;
+  box-shadow:0 4px 16px rgba(0,212,170,.3);
+}
+.login-btn:hover{opacity:.9;transform:translateY(-1px);}
+.login-btn:active{transform:translateY(0);}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+.error-msg{
+  margin-top:12px;padding:10px 14px;
+  border-radius:8px;
+  background:rgba(255,107,107,.1);
+  border:1px solid rgba(255,107,107,.2);
+  color:var(--coral);
+  font-size:12px;
+  display:none;
+}
+.error-msg.show{display:block;}
+
+.login-footer{
+  text-align:center;margin-top:20px;
+  font-size:11px;color:var(--text3);
+  line-height:1.6;
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+
+<div class="login-wrap">
+  <div class="login-brand">
+    <div class="login-logo-circle">🏫</div>
+    <div class="login-title">대생인재로</div>
+    <div class="login-subtitle">대전생활과학고등학교 · 학생 관리 대시보드</div>
+  </div>
+
+  <div class="login-card">
+    <div class="field">
+      <label>아이디</label>
+      <input type="text" id="inp-id" placeholder="아이디를 입력하세요" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>비밀번호</label>
+      <input type="password" id="inp-pw" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">로그인</button>
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+
+  <div class="login-footer">
+    아이디/비밀번호는 관리자에게 문의하세요<br>
+    © 2026 대전생활과학고등학교
+  </div>
+</div>
+
+<script>
+document.getElementById('inp-pw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('inp-id').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('inp-pw').focus();
+});
+
+async function doLogin() {
+  const id = document.getElementById('inp-id').value.trim();
+  const pw = document.getElementById('inp-pw').value;
+  const btn = document.getElementById('login-btn');
+  const errEl = document.getElementById('error-msg');
+
+  if (!id || !pw) {
+    errEl.textContent = '아이디와 비밀번호를 입력해주세요';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '로그인 중...';
+  errEl.classList.remove('show');
+
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || '로그인 실패');
+    window.location.href = '/dashboard.html';
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = '로그인';
+  }
+}
+</script>
+</body>
+</html>
